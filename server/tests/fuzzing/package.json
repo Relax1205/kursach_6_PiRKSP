@@ -1,0 +1,13 @@
+{
+  "name": "fuzzing-tests",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "node fuzzing.js",
+    "test:sql": "node fuzzing.js --sql",
+    "test:xss": "node fuzzing.js --xss",
+    "test:auth": "node fuzzing.js --auth"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}

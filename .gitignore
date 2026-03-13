@@ -1,15 +1,37 @@
-# Root
+# Dependencies
 node_modules/
+package-lock.json
+
+# Environment
 .env
+.env.local
+.env.production
+*.env
+
+# Build
+build/
+dist/
 *.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
 .DS_Store
+Thumbs.db
 
-# Client
-client/build/
-client/node_modules/
-
-# Server
-server/node_modules/
+# Testing
+coverage/
+.nyc_output/
+tests/fuzzing/results/
 
 # Docker
 docker-compose.override.yml
+
+# Temporary
+tmp/
+temp/
+*.tmp
