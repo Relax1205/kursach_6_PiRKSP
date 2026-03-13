@@ -30,7 +30,8 @@ tests/fuzzing/results/
 
 # Docker
 docker-compose.override.yml
-
+full.txt
+collect.py
 # Temporary
 tmp/
 temp/
