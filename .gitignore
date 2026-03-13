@@ -1,0 +1,15 @@
+# Root
+node_modules/
+.env
+*.log
+.DS_Store
+
+# Client
+client/build/
+client/node_modules/
+
+# Server
+server/node_modules/
+
+# Docker
+docker-compose.override.yml

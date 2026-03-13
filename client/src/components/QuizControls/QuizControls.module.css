@@ -1,0 +1,48 @@
+.controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.button {
+  padding: 12px 24px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s, opacity 0.3s;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.prevButton {
+  background-color: #757575;
+  color: white;
+}
+
+.prevButton:hover:not(:disabled) {
+  background-color: #616161;
+}
+
+.nextButton {
+  background-color: #5a7d9a;
+  color: white;
+}
+
+.nextButton:hover {
+  background-color: #4b6c86;
+}
+
+.finishButton {
+  background-color: #2e7d32;
+  color: white;
+}
+
+.finishButton:hover {
+  background-color: #1b5e20;
+}
