@@ -24,17 +24,22 @@ services:
     environment:
       DATABASE_URL: postgresql://user:password@postgres:5432/testdb
       JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRE: 7d
       NODE_ENV: development
     depends_on:
       postgres:
         condition: service_healthy
     volumes:
       - ./server:/app
+      - /app/node_modules
+    command: npm run dev
 
   frontend:
     build: ./client
     ports:
       - "3000:3000"
+    environment:
+      REACT_APP_API_URL: http://localhost:5000
     depends_on:
       - backend
     volumes:
