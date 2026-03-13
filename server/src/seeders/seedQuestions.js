@@ -1829,3 +1829,73 @@ const Questions = [
   correct: [0, 2, 1, 3, 4]
   },
 ];
+
+async function seed() {
+  try {
+    await sequelize.sync({ force: false });
+    console.log('✅ Database synchronized');
+
+    // Создаем тестового пользователя
+    let user = await User.findOne({ where: { email: 'admin@test.com' } });
+    if (!user) {
+      user = await User.create({
+        email: 'admin@test.com',
+        password: 'admin123',
+        name: 'Admin User',
+        role: 'teacher'
+      });
+      console.log('✅ Created test user: admin@test.com / admin123');
+    }
+
+    // ============================================
+    // СОЗДАЁМ ТОЛЬКО ОДИН ТЕСТ
+    // ============================================
+    const fullTest = await Test.findOne({ where: { title: '📊 Полный тест по РБД' } }) ||
+      await Test.create({
+        title: '📊 Полный тест по РБД',
+        description: 'Все вопросы по реляционным базам данных (комплексная проверка знаний)',
+        authorId: user.id,
+        isActive: true
+      });
+    console.log(`✅ Created test: ${fullTest.id}`);
+
+    // Создаём все вопросы для ЭТОГО теста
+    let createdCount = 0;
+    for (let i = 0; i < Questions.length; i++) {
+      const q = Questions[i];
+      await Question.findOrCreate({
+        where: {
+          testId: fullTest.id,
+          questionText: q.question
+        },
+        defaults: {
+          testId: fullTest.id,
+          type: q.type || 'single',
+          questionText: q.question,
+          options: q.options || null,
+          left: q.left || null,
+          right: q.right || null,
+          correct: q.correct,
+          order: i
+        }
+      });
+      createdCount++;
+      
+      if ((i + 1) % 50 === 0) {
+        console.log(`⏳ Processed ${i + 1}/${Questions.length} questions...`);
+      }
+    }
+
+    console.log('🎉 Seed completed successfully!');
+    console.log(`📊 Total questions: ${createdCount}`);
+    console.log(`📁 Test ID: ${fullTest.id}`);
+    console.log(`📁 Tests in database: 1`);
+    
+    process.exit(0);
+  } catch (error) {
+    console.error('❌ Seed failed:', error);
+    process.exit(1);
+  }
+}
+
+seed();

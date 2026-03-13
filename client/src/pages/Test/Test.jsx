@@ -1,45 +1,56 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { testsAPI } from '../../services/api';
 import styles from './Test.module.css';
 
 function Test() {
-  // Временные тестовые данные (будут загружаться с сервера)
-  const tests = [
-    {
-      id: 1,
-      title: 'Основы РБД',
-      description: 'Базовые понятия реляционных баз данных',
-      questions: 150,
-    },
-    {
-      id: 2,
-      title: 'SQL Запросы',
-      description: 'Работа с операторами SQL',
-      questions: 50,
-    },
-    {
-      id: 3,
-      title: 'Оконные функции',
-      description: 'Продвинутые возможности SQL',
-      questions: 30,
-    },
-  ];
+  const [tests, setTests] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadTests = async () => {
+      try {
+        const response = await testsAPI.getAll();
+        setTests(response.data);
+      } catch (error) {
+        console.error('Failed to load tests:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadTests();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className={styles.loading}>
+        <p>Загрузка тестов...</p>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.tests}>
       <h1>Доступные тесты</h1>
-      <div className={styles.testList}>
-        {tests.map((test) => (
-          <div key={test.id} className={styles.testCard}>
-            <h3>{test.title}</h3>
-            <p>{test.description}</p>
-            <p className={styles.questions}>{test.questions} вопросов</p>
-            <Link to={`/test/${test.id}`} className={styles.startButton}>
-              Начать тест
-            </Link>
-          </div>
-        ))}
-      </div>
+      
+      {tests.length === 0 ? (
+        <div className={styles.empty}>
+          <p>⚠️ Тесты пока не созданы. Запустите сидер:</p>
+          <code>cd server && node src/seeders/seedQuestions.js</code>
+        </div>
+      ) : (
+        <div className={styles.testList}>
+          {tests.map((test) => (
+            <div key={test.id} className={styles.testCard}>
+              <h3>{test.title}</h3>
+              <p>{test.description}</p>
+              <Link to={`/test/${test.id}`} className={styles.startButton}>
+                Начать тест
+              </Link>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
