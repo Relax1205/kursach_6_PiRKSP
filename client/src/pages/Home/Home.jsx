@@ -10,21 +10,19 @@ function Home() {
     <div className={styles.home}>
       <h1>Добро пожаловать в Конструктор Тестов!</h1>
       <p>Система для создания и прохождения образовательных тестов по РБД</p>
-
+      
       <div className={styles.buttons}>
         <Link to="/tests" className={styles.button}>
           📚 Пройти тест
         </Link>
+        
         {isAuthenticated && user?.role === 'teacher' && (
           <Link to="/constructor" className={styles.button}>
             ✏️ Создать тест
           </Link>
         )}
-        {isAuthenticated ? (
-          <Link to="/profile" className={styles.button}>
-            👤 Профиль
-          </Link>
-        ) : (
+        
+        {!isAuthenticated && (
           <Link to="/login" className={styles.button}>
             🔐 Войти
           </Link>

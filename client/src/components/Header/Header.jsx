@@ -1,4 +1,3 @@
-// client/src/components/Header/Header.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
@@ -21,6 +20,9 @@ function Header() {
       <nav className={styles.nav}>
         <Link to="/">Главная</Link>
         <Link to="/tests">Тесты</Link>
+        {isAuthenticated && (user?.role === 'teacher' || user?.role === 'admin') && (
+          <Link to="/admin/questions">❓ Вопросы</Link>
+        )}
         {isAuthenticated ? (
           <>
             <Link to="/profile">Профиль ({user?.role})</Link>

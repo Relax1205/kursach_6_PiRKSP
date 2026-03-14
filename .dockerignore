@@ -3,21 +3,17 @@ node_modules
 npm-debug.log
 .git
 .gitignore
-README.md
 .env
 .env.local
 .DS_Store
-
 # Server
 server/node_modules
 server/npm-debug.log
 server/tests
-
 # Client
 client/node_modules
 client/npm-debug.log
 client/build
 client/.env.local
-
 # Docker
 docker-compose.override.yml

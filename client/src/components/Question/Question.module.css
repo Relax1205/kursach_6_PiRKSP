@@ -26,6 +26,7 @@
 
 .matchingContainer {
   margin: 20px 0;
+  display: block;
 }
 
 .matchingInstruction {
@@ -36,9 +37,7 @@
 .matchingRow {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   margin: 10px 0;
-  gap: 10px;
 }
 
 .matchingRight {

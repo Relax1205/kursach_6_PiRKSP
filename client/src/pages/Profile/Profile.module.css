@@ -1,0 +1,171 @@
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.profileCard {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.profileCard h1 {
+  color: #5a7d9a;
+  margin-bottom: 25px;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 15px;
+}
+
+.userInfo {
+  display: grid;
+  gap: 15px;
+}
+
+.infoItem {
+  font-size: 16px;
+  padding: 10px 0;
+}
+
+.infoItem strong {
+  color: #333;
+  margin-right: 10px;
+}
+
+.role {
+  display: inline-block;
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.role.admin {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.role.teacher {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.role.student {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.resultsSection {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.resultsSection h2 {
+  color: #5a7d9a;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 15px;
+}
+
+.empty {
+  text-align: center;
+  color: #999;
+  padding: 40px;
+  font-style: italic;
+}
+
+.resultsList {
+  display: grid;
+  gap: 20px;
+}
+
+.resultCard {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  transition: box-shadow 0.3s;
+}
+
+.resultCard:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.resultHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.resultHeader h3 {
+  color: #333;
+  margin: 0;
+  font-size: 18px;
+}
+
+.grade {
+  padding: 5px 15px;
+  border-radius: 15px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.excellent {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.good {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.satisfactory {
+  background-color: #fff3e0;
+  color: #ef6c00;
+}
+
+.poor {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.resultBody {
+  display: grid;
+  gap: 10px;
+}
+
+.score {
+  font-size: 15px;
+  color: #555;
+}
+
+.percent {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.progressBar {
+  flex: 1;
+  height: 10px;
+  background-color: #e0e0e0;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #5a7d9a, #7aa5c4);
+  transition: width 0.5s ease;
+}
+
+.date {
+  font-size: 13px;
+  color: #999;
+  margin-top: 5px;
+}
