@@ -284,6 +284,19 @@ function QuestionsAdmin() {
     });
   };
 
+  const removeOption = (optionIndexToRemove) => {
+    if (questionForm.options.length <= 2) {
+      return;
+    }
+
+    const options = questionForm.options.filter((_, optionIndex) => optionIndex !== optionIndexToRemove);
+    const correct = questionForm.correct
+      .filter((optionIndex) => optionIndex !== optionIndexToRemove)
+      .map((optionIndex) => (optionIndex > optionIndexToRemove ? optionIndex - 1 : optionIndex));
+
+    setQuestionForm({ ...questionForm, options, correct });
+  };
+
   const appendMatchingRow = () => {
     setQuestionForm({
       ...questionForm,
@@ -441,7 +454,7 @@ function QuestionsAdmin() {
             <div className={styles.formGroup}>
               <label>Варианты ответов</label>
               {questionForm.options.map((option, index) => (
-                <div key={index} className={styles.optionRow}>
+                <div key={index} className={`${styles.optionRow} ${styles.answerOptionRow}`}>
                   <input
                     type={questionForm.type === 'single' ? 'radio' : 'checkbox'}
                     checked={questionForm.correct.includes(index)}
@@ -453,6 +466,16 @@ function QuestionsAdmin() {
                     onChange={(event) => handleOptionChange(index, event.target.value)}
                     placeholder={`Вариант ${index + 1}`}
                   />
+                  <button
+                    type="button"
+                    className={styles.removeOptionButton}
+                    onClick={() => removeOption(index)}
+                    disabled={questionForm.options.length <= 2}
+                    aria-label={`Удалить вариант ${index + 1}`}
+                    title="Удалить вариант"
+                  >
+                    Удалить
+                  </button>
                 </div>
               ))}
 

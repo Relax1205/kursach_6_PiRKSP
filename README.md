@@ -72,6 +72,25 @@ docker compose --env-file .env.example exec -T backend npm run seed
 
 Порт `3001` используется для прямого доступа к frontend, чтобы не конфликтовать с частым dev-портом `3000`.
 
+## Развертывание на Ubuntu Server
+
+Для production/VPS-сценария подготовлены отдельные файлы:
+
+- `docker-compose.ubuntu.yml` - compose без публикации PostgreSQL и backend наружу, с `restart: unless-stopped`;
+- `.env.ubuntu.example` - шаблон production-переменных окружения;
+- `docs/UBUNTU_DEPLOY.md` - пошаговая инструкция для Ubuntu Server.
+
+Базовый запуск на сервере:
+
+```bash
+cp .env.ubuntu.example .env.ubuntu
+# отредактируйте .env.ubuntu: пароли, JWT_SECRET, публичный REACT_APP_API_URL
+docker compose --env-file .env.ubuntu -f docker-compose.ubuntu.yml up -d --build
+docker compose --env-file .env.ubuntu -f docker-compose.ubuntu.yml exec -T backend npm run seed
+```
+
+Сверка с заданием и PDF вынесена в `docs/RKSP_COMPLIANCE.md`.
+
 ## Локальный запуск без Docker
 
 Нужен локальный PostgreSQL и переменные из `server/.env.example`.

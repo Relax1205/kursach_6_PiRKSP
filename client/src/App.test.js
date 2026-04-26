@@ -1,4 +1,10 @@
-import { render, screen } from '@testing-library/react';
+import { configureStore } from '@reduxjs/toolkit';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { Provider } from 'react-redux';
+
+import App from './App';
+import QuestionsAdmin from './pages/Admin/QuestionsAdmin';
+import authReducer from './store/slices/authSlice';
 
 jest.mock('./services/api', () => ({
   __esModule: true,
@@ -33,11 +39,12 @@ jest.mock('./services/api', () => ({
   },
 }));
 
-import App from './App';
+const { testsAPI: mockTestsAPI } = require('./services/api');
 
 let warnSpy;
 
 beforeEach(() => {
+  Object.values(mockTestsAPI).forEach((mock) => mock.mockReset());
   warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 });
 
@@ -48,6 +55,63 @@ afterEach(() => {
 test('renders constructor home page', () => {
   render(<App />);
   expect(
-    screen.getByRole('heading', { name: /добро пожаловать в конструктор тестов/i })
+    screen.getByRole('heading', { name: /Добро пожаловать в Конструктор Тестов/i })
   ).toBeInTheDocument();
+});
+
+test('allows removing answer options in the question constructor', async () => {
+  mockTestsAPI.getAll.mockResolvedValue({
+    data: [{ id: 1, title: 'Тест для проверки' }],
+  });
+  mockTestsAPI.getManageQuestions.mockResolvedValue({ data: [] });
+
+  const store = configureStore({
+    reducer: {
+      auth: authReducer,
+    },
+    preloadedState: {
+      auth: {
+        user: {
+          id: 1,
+          name: 'Teacher',
+          email: 'teacher@test.ru',
+          role: 'teacher',
+        },
+        token: 'test-token',
+        isAuthenticated: true,
+        role: 'teacher',
+        isLoading: false,
+        error: null,
+      },
+    },
+  });
+
+  const { container } = render(
+    <Provider store={store}>
+      <QuestionsAdmin />
+    </Provider>
+  );
+
+  await waitFor(() => expect(mockTestsAPI.getManageQuestions).toHaveBeenCalledWith(1));
+
+  fireEvent.click(screen.getByRole('button', { name: /Добавить вопрос/i }));
+
+  const optionInputs = () => container.querySelectorAll('input[type="text"][placeholder^="Вариант"]');
+  const removeButtons = () => screen.getAllByRole('button', { name: /Удалить вариант/i });
+
+  expect(optionInputs()).toHaveLength(4);
+  expect(removeButtons()).toHaveLength(4);
+
+  fireEvent.click(screen.getByRole('button', { name: /Добавить вариант/i }));
+  expect(optionInputs()).toHaveLength(5);
+  expect(removeButtons()).toHaveLength(5);
+
+  fireEvent.click(removeButtons()[0]);
+  fireEvent.click(removeButtons()[0]);
+  fireEvent.click(removeButtons()[0]);
+
+  expect(optionInputs()).toHaveLength(2);
+  expect(removeButtons()).toHaveLength(2);
+  removeButtons().forEach((button) => expect(button).toBeDisabled());
+  expect(within(removeButtons()[0].closest('div')).getByRole('textbox')).toHaveAttribute('placeholder', 'Вариант 1');
 });

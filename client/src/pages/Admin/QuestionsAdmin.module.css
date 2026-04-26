@@ -99,7 +99,49 @@
 }
 
 .optionRow input[type="text"] {
-  flex: 1;
+  width: auto;
+  min-width: 0;
+  flex: 1 1 0;
+}
+
+.answerOptionRow {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) 108px;
+}
+
+.answerOptionRow input[type="text"] {
+  width: 100%;
+}
+
+.removeOptionButton {
+  width: 108px;
+  min-width: 0;
+  height: 38px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.removeOptionButton:hover:not(:disabled) {
+  background: #7f332d;
+  border-color: #7f332d;
+}
+
+.removeOptionButton:disabled {
+  background: #fff;
+  color: var(--muted);
+  border-color: var(--line);
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .submitButton {
@@ -219,9 +261,18 @@
     flex-direction: column;
   }
 
+  .answerOptionRow {
+    grid-template-columns: 1fr;
+  }
+
   .addButton,
   .submitButton,
+  .removeOptionButton,
   .controls select {
     width: 100%;
+  }
+
+  .removeOptionButton {
+    flex-basis: auto;
   }
 }
