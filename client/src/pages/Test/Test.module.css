@@ -1,68 +1,89 @@
 .tests {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+  display: grid;
+  gap: 22px;
 }
 
 .tests h1 {
-  text-align: center;
-  color: #5a7d9a;
-  margin-bottom: 40px;
+  margin: 0;
+  color: var(--ink);
+  font-size: 34px;
 }
 
 .loading,
 .empty {
-  text-align: center;
-  padding: 40px;
-  background: white;
+  padding: 28px;
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  color: var(--muted);
 }
 
 .empty code {
-  display: block;
-  background: #f5f5f5;
-  padding: 10px;
+  display: inline-block;
+  max-width: 100%;
   margin-top: 10px;
+  padding: 8px 10px;
+  overflow-x: auto;
+  color: var(--ink);
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
   border-radius: 5px;
-  font-family: monospace;
 }
 
 .testList {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 30px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
 }
 
 .testCard {
-  background: white;
-  padding: 30px;
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-height: 190px;
+  padding: 22px;
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  text-align: center;
 }
 
 .testCard h3 {
-  color: #5a7d9a;
-  margin-bottom: 15px;
+  margin: 0;
+  color: var(--ink);
+  font-size: 22px;
 }
 
 .testCard p {
-  color: #666;
-  margin-bottom: 10px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.questionCount {
+  justify-self: start;
+  padding: 5px 10px;
+  color: var(--accent-dark);
+  background: var(--success-soft);
+  border: 1px solid rgba(63, 112, 71, 0.24);
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 650;
 }
 
 .startButton {
-  display: inline-block;
-  margin-top: 20px;
-  padding: 12px 30px;
-  background-color: #5a7d9a;
-  color: white;
+  justify-self: start;
+  align-self: end;
+  min-height: 38px;
+  margin-top: 8px;
+  padding: 9px 14px;
+  color: #ffffff;
+  background: var(--accent);
+  border: 1px solid var(--accent-strong);
+  border-radius: 6px;
   text-decoration: none;
-  border-radius: 5px;
-  transition: background-color 0.3s;
+  font-weight: 650;
 }
 
 .startButton:hover {
-  background-color: #4b6c86;
+  background: var(--accent-strong);
 }

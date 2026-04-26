@@ -33,13 +33,12 @@ function Register() {
     e.preventDefault();
     setLocalError('');
     
-    // 🔒 Локальная валидация
     if (formData.password !== formData.confirmPassword) {
-      setLocalError('❌ Пароли не совпадают');
+      setLocalError('Пароли не совпадают');
       return;
     }
     if (formData.password.length < 6) {
-      setLocalError('❌ Пароль должен содержать минимум 6 символов');
+      setLocalError('Пароль должен содержать минимум 6 символов');
       return;
     }
     
@@ -54,7 +53,7 @@ function Register() {
   return (
     <div className={styles.container}>
       <form onSubmit={handleSubmit} className={styles.form}>
-        <h2>📝 Регистрация</h2>
+        <h2>Регистрация</h2>
         
         {(error || localError) && (
           <div className={styles.error}>{error || localError}</div>
@@ -114,7 +113,7 @@ function Register() {
         </div>
         
         <button type="submit" disabled={isLoading} className={styles.submitButton}>
-          {isLoading ? '⏳ Регистрация...' : 'Зарегистрироваться'}
+          {isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
         </button>
         
         <p className={styles.switch}>

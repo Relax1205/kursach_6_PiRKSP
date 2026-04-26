@@ -3,6 +3,26 @@ import { Link } from 'react-router-dom';
 import { testsAPI } from '../../services/api';
 import styles from './Test.module.css';
 
+function formatQuestionCount(count) {
+  const normalizedCount = Number(count) || 0;
+  const lastTwoDigits = normalizedCount % 100;
+  const lastDigit = normalizedCount % 10;
+
+  if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
+    return `${normalizedCount} вопросов`;
+  }
+
+  if (lastDigit === 1) {
+    return `${normalizedCount} вопрос`;
+  }
+
+  if (lastDigit >= 2 && lastDigit <= 4) {
+    return `${normalizedCount} вопроса`;
+  }
+
+  return `${normalizedCount} вопросов`;
+}
+
 function Test() {
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +55,7 @@ function Test() {
       
       {tests.length === 0 ? (
         <div className={styles.empty}>
-          <p>⚠️ Тесты пока не созданы. Запустите сидер:</p>
+          <p>Тесты пока не созданы. Запустите сидер:</p>
           <code>cd server && node src/seeders/seedQuestions.js</code>
         </div>
       ) : (
@@ -44,6 +64,7 @@ function Test() {
             <div key={test.id} className={styles.testCard}>
               <h3>{test.title}</h3>
               <p>{test.description}</p>
+              <p className={styles.questionCount}>{formatQuestionCount(test.questionCount)}</p>
               <Link to={`/test/${test.id}`} className={styles.startButton}>
                 Начать тест
               </Link>

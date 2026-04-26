@@ -1,140 +1,242 @@
 .questionBlock {
-  background: white;
-  border: 1px solid #ccc;
+  padding: 24px;
+  margin-bottom: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .errorInfo {
-  text-align: center;
-  font-weight: bold;
-  color: #ff9800;
-  margin-bottom: 15px;
-  padding: 10px;
-  background: #fff3e0;
-  border-radius: 5px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  color: var(--warning);
+  background: #fbf2e4;
+  border: 1px solid #e8d1ad;
+  border-radius: 6px;
+  font-weight: 650;
 }
 
 .questionText {
-  text-align: center;
-  color: #444;
-  margin-bottom: 20px;
-  font-size: 1.2rem;
+  margin: 0 0 20px;
+  color: var(--ink);
+  font-size: 24px;
+  line-height: 1.35;
+  font-weight: 700;
 }
 
 .matchingContainer {
-  margin: 20px 0;
-  display: block;
+  display: grid;
+  gap: 12px;
 }
 
 .matchingInstruction {
-  margin-bottom: 15px;
-  font-size: 1rem;
+  margin: 0;
+  color: var(--muted);
 }
 
 .matchingRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(200px, 280px);
+  gap: 14px;
   align-items: center;
-  margin: 10px 0;
+  padding: 12px;
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: 6px;
 }
 
 .matchingRight {
-  min-width: 300px;
-  flex: 1;
+  color: var(--ink);
+  line-height: 1.4;
 }
 
 .matchingSelect {
-  padding: 8px 12px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  min-width: 200px;
+  width: 100%;
+  padding: 9px 10px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
 }
 
 .matchingSelect:disabled {
-  background-color: #f5f5f5;
+  color: var(--muted);
+  background: #edf0ea;
   cursor: not-allowed;
 }
 
 .options {
-  margin: 20px 0;
+  display: grid;
+  gap: 9px;
+  margin: 0;
 }
 
 .optionLabel {
-  display: block;
-  margin: 10px 0;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  min-height: 42px;
+  padding: 11px 12px;
   cursor: pointer;
-  padding: 10px;
-  border-radius: 5px;
-  transition: background-color 0.2s;
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: 6px;
 }
 
 .optionLabel:hover {
-  background-color: #f5f5f5;
+  border-color: var(--line-strong);
+  background: #e9eee6;
+}
+
+.correctAnswer {
+  background: #e8f2f6;
+  border-color: rgba(83, 111, 130, 0.62);
+  box-shadow: inset 4px 0 0 var(--blue);
+}
+
+.wrongAnswer {
+  background: var(--danger-soft);
+  border-color: rgba(155, 64, 56, 0.5);
+  box-shadow: inset 4px 0 0 var(--danger);
 }
 
 .optionInput {
-  margin-right: 10px;
+  flex: 0 0 auto;
+  margin-top: 3px;
+  accent-color: var(--accent);
 }
 
 .optionText {
-  font-size: 16px;
+  color: var(--ink);
+  font-size: 18px;
+  line-height: 1.35;
 }
 
 .correctOption {
-  color: #2e7d32;
-  font-weight: bold;
+  color: var(--success);
+  font-weight: 700;
 }
 
 .wrongOption {
-  color: #c62828;
-  font-weight: bold;
+  color: var(--danger);
+  font-weight: 700;
 }
 
 .actions {
-  margin-top: 20px;
-  text-align: center;
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 18px;
 }
 
 .actions button {
-  padding: 12px 30px;
-  font-size: 16px;
-  background-color: #5a7d9a;
-  color: white;
-  border: none;
-  border-radius: 5px;
+  min-height: 42px;
+  padding: 10px 18px;
+  color: #ffffff;
+  background: var(--accent);
+  border: 1px solid var(--accent-strong);
+  border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  font-size: 17px;
+  font-weight: 650;
 }
 
 .actions button:hover {
-  background-color: #4b6c86;
+  background: var(--accent-strong);
+}
+
+.actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .checkButton {
-  background-color: #5a7d9a;
+  background: var(--accent);
 }
 
 .resetButton {
-  background-color: #757575;
+  background: var(--muted);
 }
 
 .result {
-  margin-top: 15px;
-  padding: 10px;
-  border-radius: 5px;
-  text-align: center;
-  font-weight: bold;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 6px;
+  color: var(--ink);
 }
 
 .resultSuccess {
-  background-color: #e8f5e9;
-  color: #2e7d32;
+  background: #eef7ee;
+  border: 1px solid #bfd2ba;
 }
 
 .resultError {
-  background-color: #ffebee;
-  color: #c62828;
+  background: #fff8f5;
+  border: 1px solid #e0bbb4;
+}
+
+.resultTitle {
+  margin: 0 0 12px;
+  color: var(--ink);
+  font-weight: 750;
+}
+
+.feedbackTableWrapper {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+}
+
+.feedbackTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 16px;
+}
+
+.feedbackTable th,
+.feedbackTable td {
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line);
+}
+
+.feedbackTable th {
+  color: var(--ink-soft);
+  background: #f7f8f4;
+  font-weight: 650;
+}
+
+.feedbackTable tr:last-child td {
+  border-bottom: none;
+}
+
+.feedbackCorrectRow td:last-child {
+  color: var(--blue);
+  background: #e8f2f6;
+  font-weight: 750;
+}
+
+.feedbackWrongRow td:nth-child(2) {
+  color: var(--danger);
+  background: var(--danger-soft);
+  font-weight: 750;
+}
+
+.feedbackWrongRow td:first-child {
+  box-shadow: inset 4px 0 0 var(--danger);
+}
+
+.feedbackCorrectRow td:first-child {
+  box-shadow: inset 4px 0 0 var(--blue);
+}
+
+@media (max-width: 720px) {
+  .questionBlock {
+    padding: 18px;
+  }
+
+  .matchingRow {
+    grid-template-columns: 1fr;
+  }
 }

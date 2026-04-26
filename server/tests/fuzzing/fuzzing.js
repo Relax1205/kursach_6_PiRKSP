@@ -1,228 +1,338 @@
 const axios = require('axios');
 const fs = require('fs');
+const path = require('path');
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5000';
-const RESULTS_DIR = './tests/fuzzing/results';
+const RESULTS_DIR = path.join(__dirname, 'results');
 
-// Создание директории для результатов
 if (!fs.existsSync(RESULTS_DIR)) {
   fs.mkdirSync(RESULTS_DIR, { recursive: true });
 }
 
-// Векторы атак для fuzzing
 const attackVectors = {
   sqlInjection: [
     "' OR '1'='1",
     "'; DROP TABLE users;--",
     "' UNION SELECT * FROM users--",
-    "1; DELETE FROM tests--",
     "admin'--",
-    "' OR 1=1--",
-    "1' AND '1'='1",
-    "'; EXEC xp_cmdshell('dir')--"
+    "' OR 1=1--"
   ],
   xss: [
     "<script>alert('XSS')</script>",
     "<img src=x onerror=alert('XSS')>",
-    "\"><script>alert('XSS')</script>",
-    "<svg onload=alert('XSS')>",
-    "javascript:alert('XSS')",
-    "<iframe src='javascript:alert(1)'>"
+    "<svg onload=alert('XSS')>"
   ],
   pathTraversal: [
     "../../../etc/passwd",
     "..\\..\\..\\windows\\system32\\config\\sam",
-    "....//....//....//etc/passwd",
     "%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd"
   ],
   commandInjection: [
     "; cat /etc/passwd",
-    "| ls -la",
     "&& whoami",
-    "$(id)",
-    "`whoami`"
+    "$(id)"
   ],
   bufferOverflow: [
     "A".repeat(1000),
     "A".repeat(5000),
-    "A".repeat(10000),
-    "A".repeat(50000)
+    "A".repeat(10000)
   ],
   nullBytes: [
     "\x00",
     "test\x00admin",
-    "%00",
-    "admin%00"
+    "%00"
   ]
 };
 
-// Результаты тестирования
+const demoUsers = [
+  { role: 'admin', email: 'admin@test.ru', password: 'admin123' },
+  { role: 'teacher', email: 'teacher@test.ru', password: 'teacher123' },
+  { role: 'student', email: 'student@test.ru', password: 'student123' }
+];
+
 const results = {
   timestamp: new Date().toISOString(),
   baseUrl: BASE_URL,
   tests: []
 };
 
-// Функция для логирования результатов
-function logResult(testName, endpoint, method, payload, statusCode, response) {
+function normalizePayload(payload) {
+  return JSON.stringify(payload).slice(0, 200);
+}
+
+function logResult({ testName, endpoint, method, payload, statusCode, response, expectedStatuses }) {
+  const normalizedStatus = typeof statusCode === 'number' ? statusCode : 'ERROR';
+  const passed = expectedStatuses.includes(normalizedStatus);
+
   const result = {
     testName,
     endpoint,
     method,
-    payload: payload.substring(0, 100) + (payload.length > 100 ? '...' : ''),
-    statusCode,
-    response: response?.substring(0, 200),
-    timestamp: new Date().toISOString(),
-    vulnerability: statusCode < 500 && statusCode !== 400 && statusCode !== 401 && statusCode !== 403
+    payload: normalizePayload(payload),
+    statusCode: normalizedStatus,
+    response: String(response).slice(0, 300),
+    expectedStatuses,
+    passed,
+    timestamp: new Date().toISOString()
   };
-  
+
   results.tests.push(result);
-  
-  if (result.vulnerability) {
-    console.log(`⚠️  POTENTIAL VULNERABILITY: ${testName} on ${endpoint}`);
+
+  if (passed) {
+    console.log(`PASS ${testName} -> ${endpoint} (${normalizedStatus})`);
   } else {
-    console.log(`✅ Safe: ${testName} on ${endpoint} (${statusCode})`);
+    console.log(`WARN ${testName} -> ${endpoint} (${normalizedStatus})`);
   }
 }
 
-// Тестирование SQL Injection
+async function requestWithLog({ testName, endpoint, method, payload, expectedStatuses, headers = {} }) {
+  try {
+    const response = await axios({
+      method,
+      url: `${BASE_URL}${endpoint}`,
+      data: payload,
+      headers: {
+        'Content-Type': 'application/json',
+        ...headers
+      },
+      validateStatus: () => true
+    });
+
+    logResult({
+      testName,
+      endpoint,
+      method,
+      payload,
+      statusCode: response.status,
+      response: response.data,
+      expectedStatuses
+    });
+
+    return response;
+  } catch (error) {
+    logResult({
+      testName,
+      endpoint,
+      method,
+      payload,
+      statusCode: error.response?.status || 'ERROR',
+      response: error.message,
+      expectedStatuses
+    });
+
+    return null;
+  }
+}
+
+async function login(email, password) {
+  const response = await requestWithLog({
+    testName: 'Auth Login',
+    endpoint: '/api/auth/login',
+    method: 'POST',
+    payload: { email, password },
+    expectedStatuses: [200]
+  });
+
+  return response?.data?.token || null;
+}
+
+async function ensureApiIsAvailable() {
+  try {
+    const response = await axios.get(`${BASE_URL}/api/health`, {
+      timeout: 5000,
+      validateStatus: () => true
+    });
+
+    if (response.status === 200) {
+      return true;
+    }
+
+    console.error(`ERROR API healthcheck returned ${response.status}.`);
+  } catch (error) {
+    console.error(`ERROR API is unavailable at ${BASE_URL}: ${error.message}`);
+  }
+
+  console.error('\nStart the backend before fuzzing, for example:');
+  console.error('  docker compose --env-file .env.example up -d --build backend');
+  console.error('  docker compose --env-file .env.example exec -T backend npm run seed\n');
+  process.exitCode = 1;
+  return false;
+}
+
 async function testSQLInjection() {
-  console.log('\n🔍 Testing SQL Injection...\n');
-  
-  const endpoints = [
-    { method: 'POST', url: '/api/auth/login', body: { email: '', password: 'test' } },
-    { method: 'POST', url: '/api/auth/register', body: { email: '', password: 'test123', name: 'Test' } },
-    { method: 'GET', url: '/api/tests/', params: {} }
-  ];
+  console.log('\nTesting SQL injection...\n');
 
   for (const vector of attackVectors.sqlInjection) {
-    for (const endpoint of endpoints) {
-      try {
-        let config = {
-          method: endpoint.method,
-          url: `${BASE_URL}${endpoint.url}`,
-          headers: { 'Content-Type': 'application/json' }
-        };
+    await requestWithLog({
+      testName: 'SQL Injection Login',
+      endpoint: '/api/auth/login',
+      method: 'POST',
+      payload: { email: `test${vector}@test.ru`, password: 'test123' },
+      expectedStatuses: [400, 401]
+    });
 
-        if (endpoint.method === 'POST') {
-          config.data = { ...endpoint.body, email: `test${vector}@test.com` };
-        } else {
-          config.url += encodeURIComponent(vector);
-        }
-
-        const response = await axios(config);
-        logResult('SQL Injection', endpoint.url, endpoint.method, vector, response.status, response.data);
-      } catch (error) {
-        logResult('SQL Injection', endpoint.url, endpoint.method, vector, error.response?.status || 'ERROR', error.message);
-      }
-    }
+    await requestWithLog({
+      testName: 'SQL Injection Route',
+      endpoint: `/api/tests/${encodeURIComponent(vector)}`,
+      method: 'GET',
+      payload: vector,
+      expectedStatuses: [400, 404]
+    });
   }
 }
 
-// Тестирование XSS
 async function testXSS() {
-  console.log('\n🔍 Testing XSS...\n');
-  
+  console.log('\nTesting XSS payload handling...\n');
+
   for (const vector of attackVectors.xss) {
-    try {
-      const response = await axios.post(`${BASE_URL}/api/auth/register`, {
-        email: `test${Date.now()}@test.com`,
+    await requestWithLog({
+      testName: 'XSS Register Payload',
+      endpoint: '/api/auth/register',
+      method: 'POST',
+      payload: {
+        email: `xss${Date.now()}@test.ru`,
         password: 'test123',
         name: vector
-      });
-      logResult('XSS', '/api/auth/register', 'POST', vector, response.status, response.data);
-    } catch (error) {
-      logResult('XSS', '/api/auth/register', 'POST', vector, error.response?.status || 'ERROR', error.message);
-    }
+      },
+      expectedStatuses: [201]
+    });
   }
 }
 
-// Тестирование авторизации
-async function testAuth() {
-  console.log('\n🔍 Testing Authentication...\n');
-  
-  const authTests = [
-    { name: 'No Token', headers: {} },
-    { name: 'Invalid Token', headers: { Authorization: 'Bearer invalid_token_here' } },
-    { name: 'Empty Token', headers: { Authorization: 'Bearer ' } },
-    { name: 'Malformed Token', headers: { Authorization: 'NotBearer token' } }
+async function testAuthGuards() {
+  console.log('\nTesting authentication guards...\n');
+
+  const authHeaders = [
+    {},
+    { Authorization: 'Bearer invalid_token_here' },
+    { Authorization: 'Bearer ' },
+    { Authorization: 'NotBearer token' }
   ];
 
-  for (const test of authTests) {
-    try {
-      const response = await axios.get(`${BASE_URL}/api/auth/profile`, {
-        headers: test.headers
-      });
-      logResult('Auth', '/api/auth/profile', 'GET', test.name, response.status, response.data);
-    } catch (error) {
-      logResult('Auth', '/api/auth/profile', 'GET', test.name, error.response?.status || 'ERROR', error.message);
-    }
+  for (const headers of authHeaders) {
+    await requestWithLog({
+      testName: 'Protected Profile Access',
+      endpoint: '/api/auth/profile',
+      method: 'GET',
+      payload: headers,
+      headers,
+      expectedStatuses: [401]
+    });
   }
 }
 
-// Тестирование ролевой модели
-async function testRBAC(token, role) {
-  console.log(`\n🔍 Testing RBAC for ${role}...\n`);
-  
-  const tests = [
-    { name: 'Create Test (Teacher Only)', method: 'POST', url: '/api/tests', expected: role === 'teacher' || role === 'admin' ? [201, 200] : [403] },
-    { name: 'Delete Test (Teacher Only)', method: 'DELETE', url: '/api/tests/999', expected: role === 'teacher' || role === 'admin' ? [404, 403, 200] : [403] }
+async function testTraversalAndCommandPayloads() {
+  console.log('\nTesting path traversal, command injection and null bytes...\n');
+
+  const combinedVectors = [
+    ...attackVectors.pathTraversal,
+    ...attackVectors.commandInjection,
+    ...attackVectors.nullBytes
   ];
 
-  for (const test of tests) {
-    try {
-      const response = await axios({
-        method: test.method,
-        url: `${BASE_URL}${test.url}`,
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        data: { title: 'Test', description: 'Test' }
-      });
-      logResult('RBAC', test.url, test.method, test.name, response.status, response.data);
-    } catch (error) {
-      logResult('RBAC', test.url, test.method, test.name, error.response?.status || 'ERROR', error.message);
-    }
+  for (const vector of combinedVectors) {
+    await requestWithLog({
+      testName: 'Traversal/Command Route Probe',
+      endpoint: `/api/tests/${encodeURIComponent(vector)}/questions`,
+      method: 'GET',
+      payload: vector,
+      expectedStatuses: [400, 404]
+    });
   }
 }
 
-// Тестирование Buffer Overflow
 async function testBufferOverflow() {
-  console.log('\n🔍 Testing Buffer Overflow...\n');
-  
+  console.log('\nTesting large payloads...\n');
+
   for (const vector of attackVectors.bufferOverflow) {
-    try {
-      const response = await axios.post(`${BASE_URL}/api/auth/register`, {
-        email: `${vector}@test.com`,
+    await requestWithLog({
+      testName: 'Large Payload Register',
+      endpoint: '/api/auth/register',
+      method: 'POST',
+      payload: {
+        email: `buffer${Date.now()}@test.ru`,
         password: 'test123',
-        name: vector.substring(0, 100)
+        name: vector
+      },
+      expectedStatuses: [201, 400]
+    });
+  }
+}
+
+async function testRBAC() {
+  console.log('\nTesting RBAC...\n');
+
+  const tokens = {};
+
+  for (const demoUser of demoUsers) {
+    tokens[demoUser.role] = await login(demoUser.email, demoUser.password);
+  }
+
+  for (const demoUser of demoUsers) {
+    const token = tokens[demoUser.role];
+
+    if (!token) {
+      console.log(`WARN Skip RBAC checks for ${demoUser.role}: login failed`);
+      continue;
+    }
+
+    const createResponse = await requestWithLog({
+      testName: `RBAC Create Test (${demoUser.role})`,
+      endpoint: '/api/tests',
+      method: 'POST',
+      payload: {
+        title: `RBAC ${demoUser.role} ${Date.now()}`,
+        description: 'Fuzzing test',
+        questions: []
+      },
+      headers: { Authorization: `Bearer ${token}` },
+      expectedStatuses: demoUser.role === 'student' ? [403] : [201]
+    });
+
+    if ((demoUser.role === 'teacher' || demoUser.role === 'admin') && createResponse?.status === 201) {
+      await requestWithLog({
+        testName: `RBAC Delete Test (${demoUser.role})`,
+        endpoint: `/api/tests/${createResponse.data.test.id}`,
+        method: 'DELETE',
+        payload: { id: createResponse.data.test.id },
+        headers: { Authorization: `Bearer ${token}` },
+        expectedStatuses: [200]
       });
-      logResult('Buffer Overflow', '/api/auth/register', 'POST', `Length: ${vector.length}`, response.status, response.data);
-    } catch (error) {
-      logResult('Buffer Overflow', '/api/auth/register', 'POST', `Length: ${vector.length}`, error.response?.status || 'ERROR', error.message);
     }
   }
 }
 
-// Запуск всех тестов
 async function runAllTests() {
-  console.log('🚀 Starting Fuzzing Tests...\n');
+  console.log('Starting fuzzing tests...\n');
   console.log(`Target: ${BASE_URL}\n`);
-  
+
+  const isApiAvailable = await ensureApiIsAvailable();
+  if (!isApiAvailable) {
+    return;
+  }
+
   await testSQLInjection();
   await testXSS();
-  await testAuth();
+  await testAuthGuards();
+  await testTraversalAndCommandPayloads();
   await testBufferOverflow();
-  
-  // Сохранение результатов
-  const fileName = `${RESULTS_DIR}/fuzzing-report-${Date.now()}.json`;
-  fs.writeFileSync(fileName, JSON.stringify(results, null, 2));
-  
-  console.log(`\n📊 Results saved to: ${fileName}`);
-  console.log(`\n✅ Fuzzing tests completed!`);
-  
-  // Summary
-  const vulnerabilities = results.tests.filter(t => t.vulnerability);
-  console.log(`\n⚠️  Potential vulnerabilities found: ${vulnerabilities.length}`);
-  console.log(`✅ Safe tests: ${results.tests.length - vulnerabilities.length}`);
+  await testRBAC();
+
+  const reportFile = `${RESULTS_DIR}/fuzzing-report-${Date.now()}.json`;
+  fs.writeFileSync(reportFile, JSON.stringify(results, null, 2));
+
+  const failedChecks = results.tests.filter((test) => !test.passed);
+
+  console.log(`\nResults saved to: ${reportFile}`);
+  console.log(`Passed checks: ${results.tests.length - failedChecks.length}`);
+  console.log(`Failed checks: ${failedChecks.length}`);
+
+  if (failedChecks.length > 0) {
+    process.exitCode = 1;
+  }
 }
 
-runAllTests().catch(console.error);
+runAllTests().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

@@ -1,5 +1,19 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+﻿import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../services/api';
+
+const getErrorMessage = (error, fallback) => {
+  const responseError = error.response?.data;
+
+  if (typeof responseError === 'string') {
+    return responseError;
+  }
+
+  if (responseError?.error) {
+    return responseError.error;
+  }
+
+  return error.message || fallback;
+};
 
 const initialState = {
   user: null,
@@ -10,7 +24,6 @@ const initialState = {
   error: null,
 };
 
-// Асинхронный thunk для входа
 export const login = createAsyncThunk(
   'auth/login',
   async ({ email, password }, { rejectWithValue }) => {
@@ -20,12 +33,11 @@ export const login = createAsyncThunk(
       localStorage.setItem('token', token);
       return { user, token };
     } catch (error) {
-      return rejectWithValue(error.response?.data || 'Ошибка входа');
+      return rejectWithValue(getErrorMessage(error, 'Ошибка входа'));
     }
   }
 );
 
-// Асинхронный thunk для регистрации
 export const register = createAsyncThunk(
   'auth/register',
   async ({ email, password, name }, { rejectWithValue }) => {
@@ -39,7 +51,19 @@ export const register = createAsyncThunk(
       localStorage.setItem('token', token);
       return { user, token };
     } catch (error) {
-      return rejectWithValue(error.response?.data || 'Ошибка регистрации');
+      return rejectWithValue(getErrorMessage(error, 'Ошибка регистрации'));
+    }
+  }
+);
+
+export const fetchProfile = createAsyncThunk(
+  'auth/fetchProfile',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get('/api/auth/profile');
+      return response.data.user;
+    } catch (error) {
+      return rejectWithValue(getErrorMessage(error, 'Ошибка загрузки профиля'));
     }
   }
 );
@@ -90,6 +114,25 @@ export const authSlice = createSlice({
       .addCase(register.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
+      })
+      .addCase(fetchProfile.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchProfile.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isAuthenticated = true;
+        state.user = action.payload;
+        state.role = action.payload.role;
+      })
+      .addCase(fetchProfile.rejected, (state, action) => {
+        state.isLoading = false;
+        state.user = null;
+        state.token = null;
+        state.isAuthenticated = false;
+        state.role = null;
+        state.error = action.payload;
+        localStorage.removeItem('token');
       });
   },
 });

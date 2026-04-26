@@ -1,0 +1,10 @@
+node_modules
+build
+.npm-cache
+npm-debug.log
+.env
+.env.local
+.env.production
+coverage
+.DS_Store
+Thumbs.db

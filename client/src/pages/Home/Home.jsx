@@ -5,42 +5,43 @@ import styles from './Home.module.css';
 
 function Home() {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const canUseConstructor = isAuthenticated && (user?.role === 'teacher' || user?.role === 'admin');
 
   return (
     <div className={styles.home}>
       <h1>Добро пожаловать в Конструктор Тестов!</h1>
-      <p>Система для создания и прохождения образовательных тестов по РБД</p>
-      
+      <p>Система для создания и прохождения образовательных тестов</p>
+
       <div className={styles.buttons}>
         <Link to="/tests" className={styles.button}>
-          📚 Пройти тест
+          Пройти тест
         </Link>
-        
-        {isAuthenticated && user?.role === 'teacher' && (
+
+        {canUseConstructor && (
           <Link to="/constructor" className={styles.button}>
-            ✏️ Создать тест
+            Открыть конструктор
           </Link>
         )}
-        
+
         {!isAuthenticated && (
           <Link to="/login" className={styles.button}>
-            🔐 Войти
+            Войти для создания тестов
           </Link>
         )}
       </div>
 
       <div className={styles.features}>
         <div className={styles.feature}>
-          <h3>📝 150+ вопросов</h3>
-          <p>База вопросов по реляционным базам данных</p>
+          <h3>Конструктор тестов</h3>
+          <p>Преподаватель или администратор может создавать тесты, добавлять вопросы и сохранять их в базе данных.</p>
         </div>
         <div className={styles.feature}>
-          <h3>🔄 Повторение ошибок</h3>
-          <p>Автоматический режим работы над ошибками</p>
+          <h3>Проверка ответов</h3>
+          <p>Ответ можно проверить сразу: система покажет выбранный вариант и правильное решение.</p>
         </div>
         <div className={styles.feature}>
-          <h3>📊 Статистика</h3>
-          <p>Отслеживание прогресса обучения</p>
+          <h3>Статистика</h3>
+          <p>Профиль хранит историю результатов и прогресс пользователя.</p>
         </div>
       </div>
     </div>

@@ -4,6 +4,7 @@ import styles from './QuizControls.module.css';
 function QuizControls({
   currentQuestion,
   totalQuestions,
+  isSubmitting,
   onNext,
   onPrev,
   onFinish,
@@ -12,19 +13,27 @@ function QuizControls({
     <div className={styles.controls}>
       <button
         onClick={onPrev}
-        disabled={currentQuestion === 0}
+        disabled={currentQuestion === 0 || isSubmitting}
         className={`${styles.button} ${styles.prevButton}`}
       >
-        ⬅ Назад
+        Назад
       </button>
 
       {currentQuestion < totalQuestions - 1 ? (
-        <button onClick={onNext} className={`${styles.button} ${styles.nextButton}`}>
-          ➡ Вперёд
+        <button
+          onClick={onNext}
+          disabled={isSubmitting}
+          className={`${styles.button} ${styles.nextButton}`}
+        >
+          Вперёд
         </button>
       ) : (
-        <button onClick={onFinish} className={`${styles.button} ${styles.finishButton}`}>
-          ✅ Завершить тест
+        <button
+          onClick={onFinish}
+          disabled={isSubmitting}
+          className={`${styles.button} ${styles.finishButton}`}
+        >
+          {isSubmitting ? 'Отправка...' : 'Завершить тест'}
         </button>
       )}
     </div>

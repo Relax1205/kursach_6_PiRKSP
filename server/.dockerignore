@@ -1,0 +1,9 @@
+node_modules
+.npm-cache
+npm-debug.log
+.env
+.env.local
+coverage
+tests/fuzzing/results
+.DS_Store
+Thumbs.db

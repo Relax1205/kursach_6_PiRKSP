@@ -1,10 +1,9 @@
-const jwt = require('jsonwebtoken');
+﻿const jwt = require('jsonwebtoken');
 const { User } = require('../models');
 
-// Регистрация
 exports.register = async (req, res) => {
   try {
-    const { email, password, name, role } = req.body;
+    const { email, password, name } = req.body;
 
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
@@ -15,7 +14,7 @@ exports.register = async (req, res) => {
       email,
       password,
       name,
-      role: role || 'student'
+      role: 'student'
     });
 
     const token = jwt.sign(
@@ -34,7 +33,6 @@ exports.register = async (req, res) => {
   }
 };
 
-// Вход
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -65,7 +63,6 @@ exports.login = async (req, res) => {
   }
 };
 
-// Получение профиля
 exports.getProfile = async (req, res) => {
   try {
     res.json({ user: req.user.toJSON() });

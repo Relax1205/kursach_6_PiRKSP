@@ -27,6 +27,8 @@ Thumbs.db
 coverage/
 .nyc_output/
 tests/fuzzing/results/
+server/tests/fuzzing/results/
+server/tests/fuzzing/tests/
 
 # Docker
 docker-compose.override.yml
@@ -36,3 +38,9 @@ collect.py
 tmp/
 temp/
 *.tmp
+.npm-cache/
+client/.npm-cache/
+server/.npm-cache/
+.codex_tmp/
+.vendor/
+РКСП-объеденённый.pdf

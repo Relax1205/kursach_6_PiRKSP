@@ -1,29 +1,63 @@
-const { Test, Question, TestResult } = require('../models');
+﻿const { Op } = require('sequelize');
+const { Test, Question, TestResult, User } = require('../models');
+const { evaluateAnswers } = require('../utils/grading');
 
-// Получить все тесты
+const normalizeQuestionLimit = (value, maxQuestions = null) => {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  const numericValue = Number(value);
+
+  if (!Number.isInteger(numericValue) || numericValue < 1) {
+    return null;
+  }
+
+  if (Number.isInteger(maxQuestions) && maxQuestions > 0) {
+    return Math.min(numericValue, maxQuestions);
+  }
+
+  return numericValue;
+};
+
 exports.getAllTests = async (req, res) => {
   try {
     const tests = await Test.findAll({
       where: { isActive: true },
       include: [{
-        model: require('../models').User,
+        model: User,
         as: 'author',
         attributes: ['id', 'name', 'email']
       }],
-      attributes: { exclude: ['authorId'] }
+      attributes: { exclude: ['authorId'] },
+      order: [['id', 'ASC']]
     });
-    res.json(tests);
+
+    const testsWithQuestionCounts = await Promise.all(
+      tests.map(async (test) => {
+        const availableQuestionCount = await Question.count({ where: { testId: test.id } });
+        const questionLimit = normalizeQuestionLimit(test.questionLimit, availableQuestionCount);
+        const questionCount = questionLimit || availableQuestionCount;
+
+        return {
+          ...test.toJSON(),
+          availableQuestionCount,
+          questionCount
+        };
+      })
+    );
+
+    res.json(testsWithQuestionCounts);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// Получить тест по ID
 exports.getTestById = async (req, res) => {
   try {
     const test = await Test.findByPk(req.params.id, {
       include: [{
-        model: require('../models').User,
+        model: User,
         as: 'author',
         attributes: ['id', 'name', 'email']
       }]
@@ -39,29 +73,36 @@ exports.getTestById = async (req, res) => {
   }
 };
 
-// Получить вопросы теста
 exports.getTestQuestions = async (req, res) => {
   try {
+    const test = await Test.findByPk(req.params.id);
+
+    if (!test) {
+      return res.status(404).json({ error: 'Тест не найден.' });
+    }
+
     const questions = await Question.findAll({
       where: { testId: req.params.id },
       order: [['order', 'ASC']],
       attributes: ['id', 'type', 'questionText', 'options', 'left', 'right', 'correct', 'order']
     });
 
-    res.json(questions);
+    const questionLimit = normalizeQuestionLimit(test.questionLimit, questions.length);
+    res.json(questionLimit ? questions.slice(0, questionLimit) : questions);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// Создать тест (только преподаватель/админ)
 exports.createTest = async (req, res) => {
   try {
-    const { title, description, questions } = req.body;
+    const { title, description, questions, questionLimit } = req.body;
+    const normalizedQuestionLimit = normalizeQuestionLimit(questionLimit, questions?.length || null);
 
     const test = await Test.create({
       title,
       description,
+      questionLimit: normalizedQuestionLimit,
       authorId: req.user.id
     });
 
@@ -82,7 +123,7 @@ exports.createTest = async (req, res) => {
 
     const createdTest = await Test.findByPk(test.id, {
       include: [{
-        model: require('../models').User,
+        model: User,
         as: 'author',
         attributes: ['id', 'name', 'email']
       }]
@@ -97,7 +138,6 @@ exports.createTest = async (req, res) => {
   }
 };
 
-// Обновить тест
 exports.updateTest = async (req, res) => {
   try {
     const test = await Test.findByPk(req.params.id);
@@ -106,13 +146,18 @@ exports.updateTest = async (req, res) => {
       return res.status(404).json({ error: 'Тест не найден.' });
     }
 
-    // Проверка прав (только автор или админ)
     if (test.authorId !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Нет прав для редактирования этого теста.' });
     }
 
-    const { title, description, isActive } = req.body;
-    await test.update({ title, description, isActive });
+    const questionCount = await Question.count({ where: { testId: test.id } });
+    const { title, description, isActive, questionLimit } = req.body;
+    await test.update({
+      title,
+      description,
+      isActive,
+      questionLimit: normalizeQuestionLimit(questionLimit, questionCount)
+    });
 
     res.json({ message: 'Тест успешно обновлён', test });
   } catch (error) {
@@ -120,7 +165,6 @@ exports.updateTest = async (req, res) => {
   }
 };
 
-// Удалить тест
 exports.deleteTest = async (req, res) => {
   try {
     const test = await Test.findByPk(req.params.id);
@@ -135,6 +179,66 @@ exports.deleteTest = async (req, res) => {
 
     await test.destroy();
     res.json({ message: 'Тест успешно удалён' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.submitTest = async (req, res) => {
+  try {
+    const testId = Number(req.params.id);
+    const submittedQuestionIds = Array.isArray(req.body.questionIds)
+      ? [...new Set(
+          req.body.questionIds
+            .map((questionId) => Number(questionId))
+            .filter((questionId) => Number.isInteger(questionId))
+        )]
+      : [];
+
+    const questionWhere = { testId };
+    if (submittedQuestionIds.length > 0) {
+      questionWhere.id = { [Op.in]: submittedQuestionIds };
+    }
+
+    const questions = await Question.findAll({
+      where: questionWhere,
+      order: [['order', 'ASC']]
+    });
+
+    if (!questions.length) {
+      return res.status(404).json({ error: 'Вопросы для отправки результата не найдены.' });
+    }
+
+    if (submittedQuestionIds.length > 0 && questions.length !== submittedQuestionIds.length) {
+      return res.status(400).json({ error: 'Передан некорректный набор вопросов.' });
+    }
+
+    const evaluation = evaluateAnswers(questions, req.body.answers);
+    let savedResult = null;
+    const shouldPersistResult = req.user && req.body.persistResult !== false;
+
+    if (shouldPersistResult) {
+      savedResult = await TestResult.create({
+        userId: req.user.id,
+        testId,
+        score: evaluation.score,
+        totalQuestions: evaluation.totalQuestions,
+        answers: evaluation.answers
+      });
+    }
+
+    res.json({
+      message: req.user
+        ? shouldPersistResult
+          ? 'Тест завершён, результат сохранён.'
+          : 'Тест завершён без сохранения результата.'
+        : 'Тест завершён. Войдите в систему, чтобы сохранять результаты.',
+      saved: Boolean(savedResult),
+      result: savedResult,
+      score: evaluation.score,
+      totalQuestions: evaluation.totalQuestions,
+      incorrectQuestionIds: evaluation.incorrectQuestionIds
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

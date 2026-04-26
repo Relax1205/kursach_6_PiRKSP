@@ -9,7 +9,13 @@ router.post('/register',
   [
     body('email').isEmail().withMessage('Неверный формат email'),
     body('password').isLength({ min: 6 }).withMessage('Пароль должен быть не менее 6 символов'),
-    body('name').notEmpty().withMessage('Имя обязательно')
+    body('name')
+      .isLength({ min: 1, max: 100 })
+      .withMessage('Имя должно быть от 1 до 100 символов'),
+    body('role')
+      .optional()
+      .equals('student')
+      .withMessage('Публичная регистрация допускает только роль student')
   ],
   validate,
   authController.register

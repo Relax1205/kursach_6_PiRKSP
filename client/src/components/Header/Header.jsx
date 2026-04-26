@@ -7,6 +7,7 @@ import styles from './Header.module.css';
 function Header() {
   const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const canUseConstructor = isAuthenticated && (user?.role === 'teacher' || user?.role === 'admin');
 
   const handleLogout = () => {
     dispatch(logout());
@@ -15,13 +16,13 @@ function Header() {
   return (
     <header className={styles.header}>
       <div className={styles.logo}>
-        <Link to="/">📚 Конструктор Тестов</Link>
+        <Link to="/">Конструктор тестов</Link>
       </div>
       <nav className={styles.nav}>
         <Link to="/">Главная</Link>
         <Link to="/tests">Тесты</Link>
-        {isAuthenticated && (user?.role === 'teacher' || user?.role === 'admin') && (
-          <Link to="/admin/questions">❓ Вопросы</Link>
+        {canUseConstructor && (
+          <Link to="/constructor">Конструктор</Link>
         )}
         {isAuthenticated ? (
           <>

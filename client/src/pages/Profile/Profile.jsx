@@ -27,7 +27,7 @@ function Profile() {
   if (!isAuthenticated) {
     return (
       <div className={styles.container}>
-        <p>⚠️ Пожалуйста, войдите в систему для просмотра профиля</p>
+        <p>Пожалуйста, войдите в систему для просмотра профиля.</p>
       </div>
     );
   }
@@ -35,7 +35,7 @@ function Profile() {
   return (
     <div className={styles.container}>
       <div className={styles.profileCard}>
-        <h1>👤 Профиль пользователя</h1>
+        <h1>Профиль пользователя</h1>
         
         <div className={styles.userInfo}>
           <div className={styles.infoItem}>
@@ -47,9 +47,9 @@ function Profile() {
           <div className={styles.infoItem}>
             <strong>Роль:</strong> 
             <span className={`${styles.role} ${styles[user?.role]}`}>
-              {user?.role === 'admin' && '👑 Администратор'}
-              {user?.role === 'teacher' && '👨‍🏫 Преподаватель'}
-              {user?.role === 'student' && '🎓 Студент'}
+              {user?.role === 'admin' && 'Администратор'}
+              {user?.role === 'teacher' && 'Преподаватель'}
+              {user?.role === 'student' && 'Студент'}
             </span>
           </div>
           <div className={styles.infoItem}>
@@ -59,7 +59,7 @@ function Profile() {
       </div>
 
       <div className={styles.resultsSection}>
-        <h2>📊 Мои результаты тестов</h2>
+        <h2>Мои результаты тестов</h2>
         
         {loading ? (
           <p>Загрузка результатов...</p>

@@ -1,25 +1,42 @@
-# Fuzzing Testing Report
+# Fuzzing Tests
 
-## Инструменты
-- OWASP ZAP
-- ffuf
-- sqlmap
-- Custom Node.js scripts
+В папке лежит кастомный Node.js-скрипт для базовой фаззинг-проверки API.
 
-## Проведённые тесты
-1. SQL Injection
-2. XSS (Cross-Site Scripting)
-3. Authentication Bypass
-4. RBAC Validation
-5. Buffer Overflow
-6. Path Traversal
+## Что покрывает скрипт
 
-## Результаты
-См. файл `results/fuzzing-report-*.json`
+- SQL injection payloads
+- XSS payloads
+- Проверку защищённых маршрутов без валидного токена
+- RBAC для ролей `admin`, `teacher`, `student`
+- Path traversal payloads
+- Command injection payloads
+- Большие входные данные
+- Null byte payloads
 
-## Устранённые уязвимости
-- Параметризованные запросы (Sequelize ORM)
-- Валидация входных данных (express-validator)
-- JWT токены с expiration
-- CORS настройки
-- Rate limiting (рекомендуется добавить)
+## Запуск
+
+Перед запуском fuzzing должен быть доступен backend на `http://localhost:5000`.
+Для Docker-сценария:
+
+```bash
+docker compose --env-file .env.example up -d --build backend
+docker compose --env-file .env.example exec -T backend npm run seed
+```
+
+```bash
+cd server/tests/fuzzing
+npm install
+npm test
+```
+
+По умолчанию цель тестирования: `http://localhost:5000`.
+
+Можно переопределить:
+
+```bash
+BASE_URL=http://localhost:5000 npm test
+```
+
+## Отчёт
+
+JSON-отчёт сохраняется в `results/fuzzing-report-*.json`.

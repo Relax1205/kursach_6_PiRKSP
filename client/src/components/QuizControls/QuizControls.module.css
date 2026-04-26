@@ -1,48 +1,42 @@
 .controls {
   display: flex;
   gap: 10px;
-  justify-content: center;
-  margin-top: 20px;
+  justify-content: flex-end;
   flex-wrap: wrap;
+  margin-top: 16px;
 }
 
 .button {
-  padding: 12px 24px;
-  font-size: 16px;
-  border: none;
-  border-radius: 5px;
+  min-height: 39px;
+  padding: 9px 15px;
+  border: 1px solid transparent;
   cursor: pointer;
-  transition: background-color 0.3s, opacity 0.3s;
+  font-weight: 650;
 }
 
 .button:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
 .prevButton {
-  background-color: #757575;
-  color: white;
+  color: var(--ink);
+  background: var(--surface-muted);
+  border-color: var(--line-strong);
 }
 
 .prevButton:hover:not(:disabled) {
-  background-color: #616161;
+  background: #e5eadf;
 }
 
-.nextButton {
-  background-color: #5a7d9a;
-  color: white;
-}
-
-.nextButton:hover {
-  background-color: #4b6c86;
-}
-
+.nextButton,
 .finishButton {
-  background-color: #2e7d32;
-  color: white;
+  color: #ffffff;
+  background: var(--accent);
+  border-color: var(--accent-strong);
 }
 
+.nextButton:hover,
 .finishButton:hover {
-  background-color: #1b5e20;
+  background: var(--accent-strong);
 }

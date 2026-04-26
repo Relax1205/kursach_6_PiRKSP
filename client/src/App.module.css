@@ -1,35 +1,18 @@
 .app {
   min-height: 100vh;
-  background-color: #f4f4f4;
-  font-family: Arial, sans-serif;
-}
-
-.header {
-  background-color: #5A7D9A;
-  color: white;
-  padding: 1rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logo {
-  font-size: 1.5rem;
-  font-weight: bold;
-}
-
-.nav a {
-  color: white;
-  text-decoration: none;
-  margin-left: 20px;
-}
-
-.nav a:hover {
-  text-decoration: underline;
+  background: var(--page);
+  color: var(--ink);
 }
 
 .main {
-  max-width: 1200px;
+  width: min(1260px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 2rem;
+  padding: 30px 0 56px;
+}
+
+@media (max-width: 720px) {
+  .main {
+    width: min(100% - 20px, 1260px);
+    padding-top: 18px;
+  }
 }

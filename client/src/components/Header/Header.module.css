@@ -1,54 +1,66 @@
-/* client/src/components/Header/Header.module.css */
 .header {
-  background-color: #5A7D9A;
-  color: white;
-  padding: 1rem 2rem;
+  width: 100%;
+  margin: 0;
+  min-height: 58px;
+  padding: 0 28px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  gap: 24px;
+  color: #f7f4ed;
+  background: #1f2823;
+  border-bottom: 1px solid #111713;
 }
 
 .logo a {
-  color: white;
+  color: inherit;
   text-decoration: none;
-  font-size: 1.5rem;
-  font-weight: bold;
-}
-
-.logo a:hover {
-  opacity: 0.9;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0;
+  white-space: nowrap;
 }
 
 .nav {
   display: flex;
-  gap: 20px;
+  gap: 6px;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
-.nav a {
-  color: white;
+.nav a,
+.logoutButton {
+  min-height: 34px;
+  padding: 8px 11px;
+  color: #ebe7de;
+  border: 1px solid transparent;
+  background: transparent;
   text-decoration: none;
-  padding: 8px 16px;
-  border-radius: 5px;
-  transition: background-color 0.3s;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1.2;
 }
 
-.nav a:hover {
-  background-color: rgba(255, 255, 255, 0.2);
+.nav a:hover,
+.logoutButton:hover {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.07);
 }
 
 .logoutButton {
-  background-color: #c62828;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
+  color: #f4d5cd;
 }
 
-.logoutButton:hover {
-  background-color: #b71c1c;
+@media (max-width: 780px) {
+  .header {
+    padding: 12px 14px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .nav {
+    justify-content: flex-start;
+  }
 }

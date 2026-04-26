@@ -11,7 +11,6 @@ function Login() {
   
   const { isAuthenticated, isLoading, error } = useSelector((state) => state.auth);
 
-  // 🔒 Перенаправление если уже авторизован
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/tests');
@@ -34,9 +33,9 @@ function Login() {
   return (
     <div className={styles.container}>
       <form onSubmit={handleSubmit} className={styles.form}>
-        <h2>🔐 Вход в систему</h2>
+        <h2>Вход в систему</h2>
         
-        {error && <div className={styles.error}>❌ {error}</div>}
+        {error && <div className={styles.error}>{error}</div>}
         
         <div className={styles.inputGroup}>
           <label>Email</label>
@@ -66,7 +65,7 @@ function Login() {
         </div>
         
         <button type="submit" disabled={isLoading} className={styles.submitButton}>
-          {isLoading ? '⏳ Вход...' : 'Войти'}
+          {isLoading ? 'Вход...' : 'Войти'}
         </button>
         
         <p className={styles.switch}>

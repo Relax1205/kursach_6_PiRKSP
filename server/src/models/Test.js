@@ -18,6 +18,13 @@ const Test = sequelize.define('Test', {
     type: DataTypes.TEXT,
     allowNull: true
   },
+  questionLimit: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    validate: {
+      min: 1
+    }
+  },
   authorId: {
     type: DataTypes.INTEGER,
     allowNull: false,

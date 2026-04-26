@@ -1,9 +1,8 @@
-const User = require('./User');
+﻿const User = require('./User');
 const Test = require('./Test');
 const Question = require('./Question');
 const TestResult = require('./TestResult');
 
-// Associations
 Test.belongsTo(User, { foreignKey: 'authorId', as: 'author' });
 User.hasMany(Test, { foreignKey: 'authorId' });
 

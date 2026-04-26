@@ -1,4 +1,4 @@
-import axios from 'axios';
+﻿import axios from 'axios';
 
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000',
@@ -7,7 +7,6 @@ const api = axios.create({
   },
 });
 
-// Интерцептор для добавления токена
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -19,7 +18,6 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Интерцептор для обработки ошибок
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -33,24 +31,26 @@ api.interceptors.response.use(
   }
 );
 
-// Auth API
 export const authAPI = {
   register: (data) => api.post('/api/auth/register', data),
   login: (data) => api.post('/api/auth/login', data),
   getProfile: () => api.get('/api/auth/profile'),
 };
 
-// Tests API
 export const testsAPI = {
   getAll: () => api.get('/api/tests'),
   getById: (id) => api.get(`/api/tests/${id}`),
   getQuestions: (id) => api.get(`/api/tests/${id}/questions`),
+  getManageQuestions: (id) => api.get(`/api/tests/${id}/questions/manage`),
   create: (data) => api.post('/api/tests', data),
   update: (id, data) => api.put(`/api/tests/${id}`, data),
   delete: (id) => api.delete(`/api/tests/${id}`),
+  submit: (id, data) => api.post(`/api/tests/${id}/submit`, data),
+  createQuestion: (id, data) => api.post(`/api/tests/${id}/questions`, data),
+  updateQuestion: (id, questionId, data) => api.put(`/api/tests/${id}/questions/${questionId}`, data),
+  deleteQuestion: (id, questionId) => api.delete(`/api/tests/${id}/questions/${questionId}`),
 };
 
-// Results API
 export const resultsAPI = {
   save: (data) => api.post('/api/results', data),
   getMy: () => api.get('/api/results/my'),
