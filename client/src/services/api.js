@@ -39,6 +39,7 @@ export const authAPI = {
 
 export const testsAPI = {
   getAll: () => api.get('/api/tests'),
+  getManageable: () => api.get('/api/tests/manage'),
   getById: (id) => api.get(`/api/tests/${id}`),
   getQuestions: (id) => api.get(`/api/tests/${id}/questions`),
   getManageQuestions: (id) => api.get(`/api/tests/${id}/questions/manage`),
@@ -54,7 +55,18 @@ export const testsAPI = {
 export const resultsAPI = {
   save: (data) => api.post('/api/results', data),
   getMy: () => api.get('/api/results/my'),
+  getMistakes: (id) => api.get(`/api/results/${id}/mistakes`),
   getStats: (testId) => api.get(`/api/results/test/${testId}/stats`),
+};
+
+export const adminAPI = {
+  getUsers: () => api.get('/api/admin/users'),
+  updateUserRole: (id, role) => api.patch(`/api/admin/users/${id}/role`, { role }),
+  deleteUser: (id) => api.delete(`/api/admin/users/${id}`),
+  getTests: () => api.get('/api/admin/tests'),
+  updateTestModeration: (id, isActive) => api.patch(`/api/admin/tests/${id}/moderation`, { isActive }),
+  getSettings: () => api.get('/api/admin/settings'),
+  updateSettings: (settings) => api.patch('/api/admin/settings', { settings }),
 };
 
 export default api;

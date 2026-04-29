@@ -6,6 +6,8 @@ const { sequelize, testConnection } = require('./config/database');
 const authRoutes = require('./routes/auth');
 const testRoutes = require('./routes/tests');
 const resultRoutes = require('./routes/results');
+const adminRoutes = require('./routes/admin');
+const { ensureDefaultSettings } = require('./services/systemSettings');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -24,6 +26,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/tests', testRoutes);
 app.use('/api/results', resultRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Маршрут не найден' });
@@ -42,6 +45,7 @@ const startServer = async () => {
   try {
     await testConnection();
     await sequelize.sync({ alter: process.env.NODE_ENV === 'development' });
+    await ensureDefaultSettings();
     console.log('Database synchronized');
     
     app.listen(PORT, () => {

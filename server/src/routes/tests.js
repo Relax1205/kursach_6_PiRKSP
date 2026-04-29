@@ -38,6 +38,10 @@ const questionValidationRules = [
       throw new Error('Для matching-вопроса нужен левый список');
     }
 
+    if (value.some((item) => typeof item !== 'string' || !item.trim())) {
+      throw new Error('Заполните все элементы левого списка');
+    }
+
     return true;
   }),
   body('right').custom((value, { req }) => {
@@ -47,6 +51,10 @@ const questionValidationRules = [
 
     if (!Array.isArray(value) || value.length === 0) {
       throw new Error('Для matching-вопроса нужен правый список');
+    }
+
+    if (value.some((item) => typeof item !== 'string' || !item.trim())) {
+      throw new Error('Заполните все элементы правого списка');
     }
 
     if (!Array.isArray(req.body.left) || value.length !== req.body.left.length) {
@@ -60,8 +68,29 @@ const questionValidationRules = [
       return true;
     }
 
-    if (!Array.isArray(req.body.right) || value.length !== req.body.right.length) {
+    if (!Array.isArray(value) || !Array.isArray(req.body.right) || value.length !== req.body.right.length) {
       throw new Error('Для matching-вопроса нужно указать соответствие для каждого элемента');
+    }
+
+    const leftLength = Array.isArray(req.body.left) ? req.body.left.length : 0;
+    const normalizedCorrect = value.map((leftIndex) => {
+      if (leftIndex === '' || leftIndex === null || leftIndex === undefined) {
+        return NaN;
+      }
+
+      return Number(leftIndex);
+    });
+
+    if (
+      normalizedCorrect.some((leftIndex) => (
+        !Number.isInteger(leftIndex) || leftIndex < 0 || leftIndex >= leftLength
+      ))
+    ) {
+      throw new Error('Для matching-вопроса выберите корректную левую часть для каждой строки');
+    }
+
+    if (new Set(normalizedCorrect).size !== normalizedCorrect.length) {
+      throw new Error('Каждая левая часть может использоваться только один раз');
     }
 
     return true;
@@ -88,17 +117,27 @@ const questionLimitValidationRule = body('questionLimit')
   .withMessage('Количество вопросов должно быть от 1 до 500')
   .toInt();
 
+const testTitleValidationRule = body('title')
+  .isLength({ min: 5, max: 200 })
+  .withMessage('Название от 5 до 200 символов');
+
+const optionalTestTitleValidationRule = body('title')
+  .optional()
+  .isLength({ min: 5, max: 200 })
+  .withMessage('Название от 5 до 200 символов');
+
 router.get('/', testController.getAllTests);
-router.get('/:id', testIdValidationRules, validate, testController.getTestById);
+router.get('/manage', auth, role('teacher', 'admin'), testController.getManageableTests);
+router.get('/:id', testIdValidationRules, validate, optionalAuth, testController.getTestById);
 router.get('/:id/questions/manage', auth, role('teacher', 'admin'), testIdValidationRules, validate, questionController.getManageQuestions);
-router.get('/:id/questions', testIdValidationRules, validate, testController.getTestQuestions);
+router.get('/:id/questions', testIdValidationRules, validate, optionalAuth, testController.getTestQuestions);
 router.post('/:id/submit', testIdValidationRules, validate, optionalAuth, testController.submitTest);
 
 router.post('/',
   auth,
   role('teacher', 'admin'),
   [
-    body('title').isLength({ min: 5, max: 200 }).withMessage('Название от 5 до 200 символов'),
+    testTitleValidationRule,
     body('questions').isArray().withMessage('Вопросы должны быть массивом'),
     questionLimitValidationRule
   ],
@@ -108,7 +147,9 @@ router.post('/',
 
 router.put('/:id',
   auth,
+  role('teacher', 'admin'),
   testIdValidationRules,
+  optionalTestTitleValidationRule,
   questionLimitValidationRule,
   validate,
   testController.updateTest

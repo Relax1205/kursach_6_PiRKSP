@@ -8,6 +8,7 @@ function Header() {
   const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
   const canUseConstructor = isAuthenticated && (user?.role === 'teacher' || user?.role === 'admin');
+  const canUseAdmin = isAuthenticated && user?.role === 'admin';
 
   const handleLogout = () => {
     dispatch(logout());
@@ -23,6 +24,9 @@ function Header() {
         <Link to="/tests">Тесты</Link>
         {canUseConstructor && (
           <Link to="/constructor">Конструктор</Link>
+        )}
+        {canUseAdmin && (
+          <Link to="/admin">Админка</Link>
         )}
         {isAuthenticated ? (
           <>

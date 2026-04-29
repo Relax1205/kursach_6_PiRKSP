@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
+  fetchMistakeQuestions,
   fetchQuestions,
   nextQuestion,
   prevQuestion,
@@ -18,6 +19,8 @@ function QuizContainer() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { testId } = useParams();
+  const [searchParams] = useSearchParams();
+  const mistakeResultId = searchParams.get('mistakes');
 
   const {
     questions,
@@ -33,14 +36,16 @@ function QuizContainer() {
   } = useSelector((state) => state.quiz);
 
   useEffect(() => {
-    if (testId) {
+    if (mistakeResultId) {
+      dispatch(fetchMistakeQuestions(mistakeResultId));
+    } else if (testId) {
       dispatch(fetchQuestions(testId));
     }
 
     return () => {
       dispatch(resetQuiz());
     };
-  }, [dispatch, testId]);
+  }, [dispatch, mistakeResultId, testId]);
 
   const handleFinish = async () => {
     await dispatch(
@@ -60,7 +65,9 @@ function QuizContainer() {
   };
 
   const handleRestart = () => {
-    if (testId) {
+    if (mistakeResultId) {
+      dispatch(fetchMistakeQuestions(mistakeResultId));
+    } else if (testId) {
       dispatch(fetchQuestions(testId));
     }
   };
@@ -81,6 +88,17 @@ function QuizContainer() {
       <div className={styles.error}>
         <p>Ошибка: {errorMessage}</p>
         <button onClick={() => navigate('/tests')}>Вернуться к тестам</button>
+      </div>
+    );
+  }
+
+  if (questions.length === 0) {
+    return (
+      <div className={styles.error}>
+        <p>{mistakeResultId ? 'В этом результате нет ошибок для повторения.' : 'В тесте пока нет вопросов.'}</p>
+        <button onClick={() => navigate(mistakeResultId ? '/profile' : '/tests')}>
+          {mistakeResultId ? 'Вернуться в профиль' : 'Вернуться к тестам'}
+        </button>
       </div>
     );
   }

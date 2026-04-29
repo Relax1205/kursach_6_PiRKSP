@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { testsAPI } from '../../services/api';
+import { resultsAPI, testsAPI } from '../../services/api';
 
 const initialState = {
   questions: [],
@@ -38,6 +38,18 @@ export const submitResults = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || 'Ошибка отправки результатов');
+    }
+  }
+);
+
+export const fetchMistakeQuestions = createAsyncThunk(
+  'quiz/fetchMistakeQuestions',
+  async (resultId, { rejectWithValue }) => {
+    try {
+      const response = await resultsAPI.getMistakes(resultId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Ошибка загрузки ошибок');
     }
   }
 );
@@ -125,6 +137,25 @@ export const quizSlice = createSlice({
         state.finalResult = null;
       })
       .addCase(fetchQuestions.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchMistakeQuestions.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchMistakeQuestions.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.questions = shuffle(action.payload.map((question) => prepareQuestion(question)));
+        state.currentQuestion = 0;
+        state.wrongQuestions = action.payload;
+        state.mode = 'wrong';
+        state.isFinished = false;
+        state.userAnswers = [];
+        state.error = null;
+        state.finalResult = null;
+      })
+      .addCase(fetchMistakeQuestions.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })

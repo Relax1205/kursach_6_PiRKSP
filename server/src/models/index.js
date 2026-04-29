@@ -2,6 +2,7 @@
 const Test = require('./Test');
 const Question = require('./Question');
 const TestResult = require('./TestResult');
+const SystemSetting = require('./SystemSetting');
 
 Test.belongsTo(User, { foreignKey: 'authorId', as: 'author' });
 User.hasMany(Test, { foreignKey: 'authorId' });
@@ -20,5 +21,6 @@ module.exports = {
   User,
   Test,
   Question,
-  TestResult
+  TestResult,
+  SystemSetting
 };

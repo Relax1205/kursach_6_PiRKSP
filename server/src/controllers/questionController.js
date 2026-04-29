@@ -36,8 +36,9 @@ const buildQuestionPayload = (body, fallbackOrder = 0) => {
   };
 
   if (payload.type === 'matching') {
-    payload.left = body.left || [];
-    payload.right = body.right || [];
+    payload.left = (body.left || []).map((value) => value.trim());
+    payload.right = (body.right || []).map((value) => value.trim());
+    payload.correct = (body.correct || []).map(Number);
   } else {
     payload.options = body.options || [];
   }

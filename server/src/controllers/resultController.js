@@ -1,10 +1,17 @@
 ﻿const { Op } = require('sequelize');
 const { Test, TestResult, Question, User } = require('../models');
+const { canAccessTest, canManageTest } = require('../constants/roles');
 const { evaluateAnswers } = require('../utils/grading');
 
 exports.saveResult = async (req, res) => {
   try {
     const { testId, questionIds } = req.body;
+    const test = await Test.findByPk(testId);
+
+    if (!test || !canAccessTest(req.user, test)) {
+      return res.status(404).json({ error: 'Тест не найден.' });
+    }
+
     const submittedQuestionIds = Array.isArray(questionIds)
       ? [...new Set(
           questionIds
@@ -71,6 +78,44 @@ exports.getUserResults = async (req, res) => {
   }
 };
 
+exports.getResultMistakes = async (req, res) => {
+  try {
+    const result = await TestResult.findByPk(req.params.id, {
+      include: [{
+        model: Test,
+        as: 'test',
+        attributes: ['id', 'title', 'authorId', 'isActive', 'questionLimit']
+      }]
+    });
+
+    if (!result) {
+      return res.status(404).json({ error: 'Результат не найден.' });
+    }
+
+    const canViewResult = result.userId === req.user.id
+      || req.user.role === 'admin'
+      || canManageTest(req.user, result.test);
+
+    if (!canViewResult) {
+      return res.status(403).json({ error: 'Нет прав для просмотра этого результата.' });
+    }
+
+    const questions = await Question.findAll({
+      where: { testId: result.testId },
+      order: [['order', 'ASC']],
+      attributes: ['id', 'type', 'questionText', 'options', 'left', 'right', 'correct', 'order']
+    });
+
+    const evaluation = evaluateAnswers(questions, result.answers);
+    const incorrectQuestionIdSet = new Set(evaluation.incorrectQuestionIds);
+    const incorrectQuestions = questions.filter((question) => incorrectQuestionIdSet.has(question.id));
+
+    res.json(incorrectQuestions);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 exports.getTestStatistics = async (req, res) => {
   try {
     const { testId } = req.params;
@@ -80,7 +125,7 @@ exports.getTestStatistics = async (req, res) => {
       return res.status(404).json({ error: 'Тест не найден.' });
     }
 
-    if (test.authorId !== req.user.id && req.user.role !== 'admin') {
+    if (!canManageTest(req.user, test)) {
       return res.status(403).json({ error: 'Нет прав для просмотра статистики этого теста.' });
     }
 

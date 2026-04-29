@@ -1,9 +1,15 @@
 ﻿const jwt = require('jsonwebtoken');
 const { User } = require('../models');
+const { getSettingValue } = require('../services/systemSettings');
 
 exports.register = async (req, res) => {
   try {
     const { email, password, name } = req.body;
+    const publicRegistrationEnabled = await getSettingValue('publicRegistrationEnabled');
+
+    if (!publicRegistrationEnabled) {
+      return res.status(403).json({ error: 'Самостоятельная регистрация временно отключена.' });
+    }
 
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {

@@ -1,5 +1,7 @@
 ﻿const { Op } = require('sequelize');
-const { Test, Question, TestResult, User } = require('../models');
+const { sequelize, Test, Question, TestResult, User } = require('../models');
+const { ROLES, canAccessTest } = require('../constants/roles');
+const { getSettingValue } = require('../services/systemSettings');
 const { evaluateAnswers } = require('../utils/grading');
 
 const normalizeQuestionLimit = (value, maxQuestions = null) => {
@@ -20,6 +22,18 @@ const normalizeQuestionLimit = (value, maxQuestions = null) => {
   return numericValue;
 };
 
+const addQuestionCounts = async (test) => {
+  const availableQuestionCount = await Question.count({ where: { testId: test.id } });
+  const questionLimit = normalizeQuestionLimit(test.questionLimit, availableQuestionCount);
+  const questionCount = questionLimit || availableQuestionCount;
+
+  return {
+    ...test.toJSON(),
+    availableQuestionCount,
+    questionCount
+  };
+};
+
 exports.getAllTests = async (req, res) => {
   try {
     const tests = await Test.findAll({
@@ -33,20 +47,31 @@ exports.getAllTests = async (req, res) => {
       order: [['id', 'ASC']]
     });
 
-    const testsWithQuestionCounts = await Promise.all(
-      tests.map(async (test) => {
-        const availableQuestionCount = await Question.count({ where: { testId: test.id } });
-        const questionLimit = normalizeQuestionLimit(test.questionLimit, availableQuestionCount);
-        const questionCount = questionLimit || availableQuestionCount;
+    const testsWithQuestionCounts = await Promise.all(tests.map(addQuestionCounts));
 
-        return {
-          ...test.toJSON(),
-          availableQuestionCount,
-          questionCount
-        };
-      })
-    );
+    res.json(testsWithQuestionCounts);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
+exports.getManageableTests = async (req, res) => {
+  try {
+    const where = req.user.role === ROLES.ADMIN
+      ? {}
+      : { authorId: req.user.id };
+
+    const tests = await Test.findAll({
+      where,
+      include: [{
+        model: User,
+        as: 'author',
+        attributes: ['id', 'name', 'email']
+      }],
+      order: [['id', 'ASC']]
+    });
+
+    const testsWithQuestionCounts = await Promise.all(tests.map(addQuestionCounts));
     res.json(testsWithQuestionCounts);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -67,6 +92,10 @@ exports.getTestById = async (req, res) => {
       return res.status(404).json({ error: 'Тест не найден.' });
     }
 
+    if (!canAccessTest(req.user, test)) {
+      return res.status(404).json({ error: 'Тест не найден.' });
+    }
+
     res.json(test);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -78,6 +107,10 @@ exports.getTestQuestions = async (req, res) => {
     const test = await Test.findByPk(req.params.id);
 
     if (!test) {
+      return res.status(404).json({ error: 'Тест не найден.' });
+    }
+
+    if (!canAccessTest(req.user, test)) {
       return res.status(404).json({ error: 'Тест не найден.' });
     }
 
@@ -97,13 +130,18 @@ exports.getTestQuestions = async (req, res) => {
 exports.createTest = async (req, res) => {
   try {
     const { title, description, questions, questionLimit } = req.body;
+    const teacherTestsRequireModeration = await getSettingValue('teacherTestsRequireModeration');
     const normalizedQuestionLimit = normalizeQuestionLimit(questionLimit, questions?.length || null);
+    const isActive = req.user.role === ROLES.ADMIN
+      ? req.body.isActive !== false
+      : !teacherTestsRequireModeration;
 
     const test = await Test.create({
       title,
       description,
       questionLimit: normalizedQuestionLimit,
-      authorId: req.user.id
+      authorId: req.user.id,
+      isActive
     });
 
     if (questions && questions.length > 0) {
@@ -152,12 +190,33 @@ exports.updateTest = async (req, res) => {
 
     const questionCount = await Question.count({ where: { testId: test.id } });
     const { title, description, isActive, questionLimit } = req.body;
-    await test.update({
-      title,
-      description,
-      isActive,
-      questionLimit: normalizeQuestionLimit(questionLimit, questionCount)
-    });
+    const updatePayload = {};
+
+    if (title !== undefined) {
+      updatePayload.title = title;
+    }
+
+    if (description !== undefined) {
+      updatePayload.description = description;
+    }
+
+    if (questionLimit !== undefined) {
+      updatePayload.questionLimit = normalizeQuestionLimit(questionLimit, questionCount);
+    }
+
+    if (isActive !== undefined && req.user.role === ROLES.ADMIN) {
+      updatePayload.isActive = isActive;
+    } else if (isActive !== undefined) {
+      const teacherTestsRequireModeration = await getSettingValue('teacherTestsRequireModeration');
+
+      if (teacherTestsRequireModeration && Boolean(isActive) && !test.isActive) {
+        return res.status(403).json({ error: 'Публикацию теста должен подтвердить администратор.' });
+      }
+
+      updatePayload.isActive = isActive;
+    }
+
+    await test.update(updatePayload);
 
     res.json({ message: 'Тест успешно обновлён', test });
   } catch (error) {
@@ -177,16 +236,36 @@ exports.deleteTest = async (req, res) => {
       return res.status(403).json({ error: 'Нет прав для удаления этого теста.' });
     }
 
-    await test.destroy();
+    await sequelize.transaction(async (transaction) => {
+      await TestResult.destroy({
+        where: { testId: test.id },
+        transaction
+      });
+
+      await Question.destroy({
+        where: { testId: test.id },
+        transaction
+      });
+
+      await test.destroy({ transaction });
+    });
+
     res.json({ message: 'Тест успешно удалён' });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'Не удалось удалить тест.' });
   }
 };
 
 exports.submitTest = async (req, res) => {
   try {
     const testId = Number(req.params.id);
+    const test = await Test.findByPk(testId);
+    const isPracticeSubmission = req.user && req.body.persistResult === false;
+
+    if (!test || (!canAccessTest(req.user, test) && !isPracticeSubmission)) {
+      return res.status(404).json({ error: 'Тест не найден.' });
+    }
+
     const submittedQuestionIds = Array.isArray(req.body.questionIds)
       ? [...new Set(
           req.body.questionIds

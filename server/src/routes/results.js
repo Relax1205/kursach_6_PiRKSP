@@ -15,6 +15,14 @@ router.post('/',
   resultController.saveResult
 );
 router.get('/my', auth, resultController.getUserResults);
+router.get('/:id/mistakes',
+  auth,
+  [
+    param('id').isInt({ min: 1 }).withMessage('Некорректный id результата').toInt()
+  ],
+  validate,
+  resultController.getResultMistakes
+);
 router.get('/test/:testId/stats',
   auth,
   role('teacher', 'admin'),

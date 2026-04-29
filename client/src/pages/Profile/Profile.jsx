@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { resultsAPI } from '../../services/api';
 import styles from './Profile.module.css';
@@ -108,6 +109,14 @@ function Profile() {
                     <div className={styles.date}>
                       {new Date(result.completedAt).toLocaleString('ru-RU')}
                     </div>
+                    {result.score < result.totalQuestions && result.test?.id && (
+                      <Link
+                        to={`/test/${result.test.id}?mistakes=${result.id}`}
+                        className={styles.retryLink}
+                      >
+                        Повторить ошибки
+                      </Link>
+                    )}
                   </div>
                 </div>
               );
