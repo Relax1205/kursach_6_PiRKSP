@@ -1,7 +1,37 @@
 ﻿const { Op } = require('sequelize');
 const { Test, TestResult, Question, User } = require('../models');
 const { canAccessTest, canManageTest } = require('../constants/roles');
-const { evaluateAnswers } = require('../utils/grading');
+const { evaluateAnswers, isAnswerCorrect } = require('../utils/grading');
+
+const normalizeDurationSeconds = (value) => {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  const numericValue = Number(value);
+
+  if (!Number.isInteger(numericValue) || numericValue < 0) {
+    return null;
+  }
+
+  return Math.min(numericValue, 86400);
+};
+
+const getResultPercent = (result) => {
+  if (!result.totalQuestions) {
+    return 0;
+  }
+
+  return Math.round((result.score / result.totalQuestions) * 100);
+};
+
+const getAnswerByQuestionId = (answers, questionId) => {
+  if (!Array.isArray(answers)) {
+    return undefined;
+  }
+
+  return answers.find((answerEntry) => Number(answerEntry.questionId) === Number(questionId))?.answer;
+};
 
 exports.saveResult = async (req, res) => {
   try {
@@ -45,6 +75,7 @@ exports.saveResult = async (req, res) => {
       testId,
       score: evaluation.score,
       totalQuestions: evaluation.totalQuestions,
+      durationSeconds: normalizeDurationSeconds(req.body.durationSeconds),
       answers: evaluation.answers
     });
 
@@ -129,24 +160,72 @@ exports.getTestStatistics = async (req, res) => {
       return res.status(403).json({ error: 'Нет прав для просмотра статистики этого теста.' });
     }
 
-    const results = await TestResult.findAll({
-      where: { testId },
-      include: [{
-        model: User,
-        as: 'user',
-        attributes: ['id', 'name', 'email']
-      }]
+    const [questions, results] = await Promise.all([
+      Question.findAll({
+        where: { testId },
+        order: [['order', 'ASC']],
+        attributes: ['id', 'type', 'questionText', 'options', 'left', 'right', 'correct', 'order']
+      }),
+      TestResult.findAll({
+        where: { testId },
+        include: [{
+          model: User,
+          as: 'user',
+          attributes: ['id', 'name', 'email']
+        }],
+        order: [['completedAt', 'ASC']]
+      })
+    ]);
+
+    const serializedResults = results.map((result) => {
+      const resultData = result.toJSON();
+
+      return {
+        ...resultData,
+        percent: getResultPercent(resultData)
+      };
     });
 
-    const averageScore = results.length > 0
-      ? Math.round(results.reduce((sum, r) => sum + r.score, 0) / results.length)
+    const averageScore = serializedResults.length > 0
+      ? Math.round(serializedResults.reduce((sum, result) => sum + result.score, 0) / serializedResults.length)
       : 0;
+    const averagePercent = serializedResults.length > 0
+      ? Math.round(serializedResults.reduce((sum, result) => sum + result.percent, 0) / serializedResults.length)
+      : 0;
+    const durationValues = serializedResults
+      .map((result) => normalizeDurationSeconds(result.durationSeconds))
+      .filter((durationSeconds) => durationSeconds !== null);
+    const averageDurationSeconds = durationValues.length > 0
+      ? Math.round(durationValues.reduce((sum, durationSeconds) => sum + durationSeconds, 0) / durationValues.length)
+      : null;
+    const questionStats = questions.map((question) => {
+      const answeredResults = serializedResults.filter((result) => (
+        getAnswerByQuestionId(result.answers, question.id) !== undefined
+      ));
+      const correctCount = answeredResults.filter((result) => (
+        isAnswerCorrect(question, getAnswerByQuestionId(result.answers, question.id))
+      )).length;
+      const totalAnswers = answeredResults.length;
+
+      return {
+        questionId: question.id,
+        order: question.order,
+        questionText: question.questionText,
+        correctCount,
+        incorrectCount: totalAnswers - correctCount,
+        totalAnswers,
+        correctPercent: totalAnswers > 0 ? Math.round((correctCount / totalAnswers) * 100) : 0
+      };
+    });
 
     res.json({
-      testId,
-      totalAttempts: results.length,
+      testId: Number(testId),
+      totalAttempts: serializedResults.length,
       averageScore,
-      results
+      averagePercent,
+      averageDurationSeconds,
+      questionStats,
+      results: serializedResults
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

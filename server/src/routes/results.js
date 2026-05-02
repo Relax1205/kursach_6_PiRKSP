@@ -9,7 +9,12 @@ const validate = require('../middleware/validate');
 router.post('/',
   auth,
   [
-    body('testId').isInt({ min: 1 }).withMessage('Некорректный id теста').toInt()
+    body('testId').isInt({ min: 1 }).withMessage('Некорректный id теста').toInt(),
+    body('durationSeconds')
+      .optional({ nullable: true })
+      .isInt({ min: 0, max: 86400 })
+      .withMessage('Время прохождения должно быть от 0 до 86400 секунд')
+      .toInt()
   ],
   validate,
   resultController.saveResult

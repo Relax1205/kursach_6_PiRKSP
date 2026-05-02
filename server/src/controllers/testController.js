@@ -4,6 +4,20 @@ const { ROLES, canAccessTest } = require('../constants/roles');
 const { getSettingValue } = require('../services/systemSettings');
 const { evaluateAnswers } = require('../utils/grading');
 
+const normalizeDurationSeconds = (value) => {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  const numericValue = Number(value);
+
+  if (!Number.isInteger(numericValue) || numericValue < 0) {
+    return null;
+  }
+
+  return Math.min(numericValue, 86400);
+};
+
 const normalizeQuestionLimit = (value, maxQuestions = null) => {
   if (value === null || value === undefined || value === '') {
     return null;
@@ -302,6 +316,7 @@ exports.submitTest = async (req, res) => {
         testId,
         score: evaluation.score,
         totalQuestions: evaluation.totalQuestions,
+        durationSeconds: normalizeDurationSeconds(req.body.durationSeconds),
         answers: evaluation.answers
       });
     }

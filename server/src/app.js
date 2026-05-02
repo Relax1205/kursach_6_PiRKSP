@@ -1,5 +1,6 @@
 ﻿const express = require('express');
 const cors = require('cors');
+const { DataTypes } = require('sequelize');
 require('dotenv').config();
 
 const { sequelize, testConnection } = require('./config/database');
@@ -12,6 +13,18 @@ const { ensureDefaultSettings } = require('./services/systemSettings');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+const ensureResultDurationColumn = async () => {
+  const queryInterface = sequelize.getQueryInterface();
+  const tableDescription = await queryInterface.describeTable('test_results');
+
+  if (!tableDescription.durationSeconds) {
+    await queryInterface.addColumn('test_results', 'durationSeconds', {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    });
+  }
+};
 
 app.use(cors());
 app.use(express.json());
@@ -48,6 +61,7 @@ const startServer = async () => {
   try {
     await testConnection();
     await sequelize.sync({ alter: process.env.NODE_ENV === 'development' });
+    await ensureResultDurationColumn();
     await ensureDefaultSettings();
     console.log('Database synchronized');
     

@@ -131,7 +131,19 @@ router.get('/manage', auth, role('teacher', 'admin'), testController.getManageab
 router.get('/:id', testIdValidationRules, validate, optionalAuth, testController.getTestById);
 router.get('/:id/questions/manage', auth, role('teacher', 'admin'), testIdValidationRules, validate, questionController.getManageQuestions);
 router.get('/:id/questions', testIdValidationRules, validate, optionalAuth, testController.getTestQuestions);
-router.post('/:id/submit', testIdValidationRules, validate, optionalAuth, testController.submitTest);
+router.post('/:id/submit',
+  testIdValidationRules,
+  [
+    body('durationSeconds')
+      .optional({ nullable: true })
+      .isInt({ min: 0, max: 86400 })
+      .withMessage('Время прохождения должно быть от 0 до 86400 секунд')
+      .toInt()
+  ],
+  validate,
+  optionalAuth,
+  testController.submitTest
+);
 
 router.post('/',
   auth,

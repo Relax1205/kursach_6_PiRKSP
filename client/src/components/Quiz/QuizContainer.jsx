@@ -26,6 +26,7 @@ function QuizContainer() {
   const [remainingSeconds, setRemainingSeconds] = useState(null);
   const [hasTimedOut, setHasTimedOut] = useState(false);
   const autoSubmitRef = useRef(false);
+  const startedAtRef = useRef(null);
 
   const {
     questions,
@@ -75,6 +76,7 @@ function QuizContainer() {
     setRemainingSeconds(questions.length * SECONDS_PER_QUESTION);
     setHasTimedOut(false);
     autoSubmitRef.current = false;
+    startedAtRef.current = Date.now();
   }, [isLoading, questionSetKey, questions.length]);
 
   useEffect(() => {
@@ -115,6 +117,9 @@ function QuizContainer() {
         questionIds: questions.map((question) => question.id),
         answers: userAnswers,
         persistResult: mode === 'main',
+        durationSeconds: startedAtRef.current
+          ? Math.max(0, Math.round((Date.now() - startedAtRef.current) / 1000))
+          : null,
       })
     );
   }, [dispatch, isSubmitting, mode, questions, testId, userAnswers]);

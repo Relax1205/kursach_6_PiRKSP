@@ -730,9 +730,42 @@ const openApiDocument = {
             type: 'integer',
             example: 10
           },
+          durationSeconds: {
+            type: 'integer',
+            nullable: true,
+            example: 420
+          },
+          percent: {
+            type: 'integer',
+            nullable: true,
+            example: 80
+          },
           answers: {
-            type: 'object',
-            additionalProperties: true
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                questionId: {
+                  type: 'integer'
+                },
+                answer: {
+                  oneOf: [
+                    {
+                      type: 'array',
+                      items: {
+                        type: 'integer'
+                      }
+                    },
+                    {
+                      type: 'object',
+                      additionalProperties: {
+                        type: 'integer'
+                      }
+                    }
+                  ]
+                }
+              }
+            }
           },
           completedAt: {
             type: 'string',
@@ -953,12 +986,35 @@ const openApiDocument = {
         type: 'object',
         properties: {
           answers: {
-            type: 'object',
-            additionalProperties: true,
-            example: {
-              100: [0],
-              101: [1, 2]
-            }
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                questionId: {
+                  type: 'integer'
+                },
+                answer: {
+                  oneOf: [
+                    {
+                      type: 'array',
+                      items: {
+                        type: 'integer'
+                      }
+                    },
+                    {
+                      type: 'object',
+                      additionalProperties: {
+                        type: 'integer'
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            example: [
+              { questionId: 100, answer: [0] },
+              { questionId: 101, answer: [1, 2] }
+            ]
           },
           questionIds: {
             type: 'array',
@@ -969,6 +1025,13 @@ const openApiDocument = {
           persistResult: {
             type: 'boolean',
             default: true
+          },
+          durationSeconds: {
+            type: 'integer',
+            minimum: 0,
+            maximum: 86400,
+            nullable: true,
+            description: 'Elapsed test time in seconds.'
           }
         },
         required: ['answers']
@@ -1036,6 +1099,34 @@ const openApiDocument = {
           }
         }
       },
+      QuestionStatistics: {
+        type: 'object',
+        properties: {
+          questionId: {
+            type: 'integer'
+          },
+          order: {
+            type: 'integer'
+          },
+          questionText: {
+            type: 'string'
+          },
+          correctCount: {
+            type: 'integer'
+          },
+          incorrectCount: {
+            type: 'integer'
+          },
+          totalAnswers: {
+            type: 'integer'
+          },
+          correctPercent: {
+            type: 'integer',
+            minimum: 0,
+            maximum: 100
+          }
+        }
+      },
       TestStatistics: {
         type: 'object',
         properties: {
@@ -1047,6 +1138,19 @@ const openApiDocument = {
           },
           averageScore: {
             type: 'integer'
+          },
+          averagePercent: {
+            type: 'integer',
+            minimum: 0,
+            maximum: 100
+          },
+          averageDurationSeconds: {
+            type: 'integer',
+            nullable: true
+          },
+          questionStats: {
+            type: 'array',
+            items: ref('QuestionStatistics')
           },
           results: {
             type: 'array',

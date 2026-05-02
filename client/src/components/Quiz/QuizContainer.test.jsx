@@ -200,6 +200,7 @@ describe('QuizContainer', () => {
       questionIds: [1],
       answers: [],
       persistResult: false,
+      durationSeconds: expect.any(Number),
     }));
 
     fireEvent.click(await screen.findByText('Пройти заново'));

@@ -165,6 +165,7 @@ describe('quizSlice', () => {
       questionIds: [2],
       answers: [{ questionId: 2, answer: {} }],
       persistResult: false,
+      durationSeconds: null,
     });
     expect(store.getState().quiz).toMatchObject({
       isFinished: true,

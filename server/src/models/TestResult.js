@@ -31,6 +31,13 @@ const TestResult = sequelize.define('TestResult', {
     type: DataTypes.INTEGER,
     allowNull: false
   },
+  durationSeconds: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    validate: {
+      min: 0
+    }
+  },
   answers: {
     type: DataTypes.JSON,
     allowNull: true

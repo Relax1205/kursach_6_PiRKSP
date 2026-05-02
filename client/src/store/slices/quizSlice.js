@@ -28,12 +28,13 @@ export const fetchQuestions = createAsyncThunk(
 
 export const submitResults = createAsyncThunk(
   'quiz/submitResults',
-  async ({ testId, questionIds, answers, persistResult = true }, { rejectWithValue }) => {
+  async ({ testId, questionIds, answers, persistResult = true, durationSeconds = null }, { rejectWithValue }) => {
     try {
       const response = await testsAPI.submit(testId, {
         questionIds,
         answers,
         persistResult,
+        durationSeconds,
       });
       return response.data;
     } catch (error) {
