@@ -7,6 +7,7 @@ const authRoutes = require('./routes/auth');
 const testRoutes = require('./routes/tests');
 const resultRoutes = require('./routes/results');
 const adminRoutes = require('./routes/admin');
+const { setupSwagger } = require('./config/swagger');
 const { ensureDefaultSettings } = require('./services/systemSettings');
 
 const app = express();
@@ -22,6 +23,8 @@ app.get('/api/health', (req, res) => {
     environment: process.env.NODE_ENV
   });
 });
+
+setupSwagger(app);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/tests', testRoutes);
