@@ -26,7 +26,7 @@ function Header() {
           <Link to="/constructor">Конструктор</Link>
         )}
         {canUseAdmin && (
-          <Link to="/admin">Админка</Link>
+          <Link to="/admin">Администрирование</Link>
         )}
         {isAuthenticated ? (
           <>

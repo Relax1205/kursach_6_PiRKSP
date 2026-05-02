@@ -194,7 +194,7 @@ async function testXSS() {
         password: 'test123',
         name: vector
       },
-      expectedStatuses: [201]
+      expectedStatuses: [400]
     });
   }
 }

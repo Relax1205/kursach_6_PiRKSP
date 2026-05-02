@@ -49,7 +49,7 @@ describe('Header', () => {
     });
 
     expect(screen.getByText('Конструктор')).toBeInTheDocument();
-    expect(screen.queryByText('Админка')).not.toBeInTheDocument();
+    expect(screen.queryByText('Администрирование')).not.toBeInTheDocument();
     fireEvent.click(screen.getByText('Выйти'));
     expect(store.getState().auth.isAuthenticated).toBe(false);
   });
@@ -65,7 +65,7 @@ describe('Header', () => {
     });
 
     expect(screen.getByText('Конструктор')).toBeInTheDocument();
-    expect(screen.getByText('Админка')).toBeInTheDocument();
+    expect(screen.getByText('Администрирование')).toBeInTheDocument();
   });
 });
 
