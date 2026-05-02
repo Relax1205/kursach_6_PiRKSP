@@ -72,13 +72,15 @@ const updateSettings = async (settings, userId) => {
   await ensureDefaultSettings();
 
   for (const [key, value] of Object.entries(settings)) {
+    const normalizedValue = normalizeSettingValue(key, value);
+
     if (!DEFAULT_SETTINGS[key]) {
       continue;
     }
 
     await SystemSetting.upsert({
       key,
-      value: normalizeSettingValue(key, value),
+      value: normalizedValue,
       description: DEFAULT_SETTINGS[key].description,
       updatedBy: userId,
       updatedAt: new Date()

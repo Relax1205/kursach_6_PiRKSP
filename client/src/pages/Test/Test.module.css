@@ -59,15 +59,31 @@
   line-height: 1.5;
 }
 
-.questionCount {
+.testMeta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.questionCount,
+.timeLimit {
   justify-self: start;
   padding: 5px 10px;
-  color: var(--accent-dark);
-  background: var(--success-soft);
-  border: 1px solid rgba(63, 112, 71, 0.24);
   border-radius: 999px;
   font-size: 16px;
   font-weight: 650;
+}
+
+.questionCount {
+  color: var(--accent-dark);
+  background: var(--success-soft);
+  border: 1px solid rgba(63, 112, 71, 0.24);
+}
+
+.timeLimit {
+  color: var(--ink);
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
 }
 
 .startButton {

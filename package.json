@@ -1,0 +1,13 @@
+{
+  "name": "test-constructor",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "npm run test:client && npm run test:server",
+    "test:client": "npm --prefix client test -- --watchAll=false --runInBand",
+    "test:server": "npm --prefix server test",
+    "coverage": "npm run coverage:client && npm run coverage:server",
+    "coverage:client": "npm --prefix client run coverage",
+    "coverage:server": "npm --prefix server run coverage"
+  }
+}

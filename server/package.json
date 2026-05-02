@@ -5,7 +5,26 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
-    "seed": "node src/seeders/seedQuestions.js"
+    "seed": "node src/seeders/seedQuestions.js",
+    "test": "node ../client/node_modules/jest/bin/jest.js --runInBand",
+    "coverage": "node ../client/node_modules/jest/bin/jest.js --coverage --runInBand"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "collectCoverageFrom": [
+      "src/constants/**/*.js",
+      "src/middleware/**/*.js",
+      "src/services/**/*.js",
+      "src/utils/**/*.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 100,
+        "functions": 100,
+        "lines": 100,
+        "statements": 100
+      }
+    }
   },
   "dependencies": {
     "express": "^4.18.2",

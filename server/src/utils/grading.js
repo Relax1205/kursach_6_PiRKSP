@@ -82,7 +82,12 @@ const areArrayAnswersEqual = (answer, correct) => {
 
 const areMatchingAnswersEqual = (answer, correct) => {
   const normalizedAnswer = sanitizeMatchingAnswer(answer);
-  const normalizedCorrect = Array.isArray(correct) ? correct.map(toInteger) : [];
+
+  if (!Array.isArray(correct)) {
+    return false;
+  }
+
+  const normalizedCorrect = correct.map(toInteger);
 
   if (normalizedCorrect.some((value) => value === null)) {
     return false;
@@ -137,6 +142,7 @@ const evaluateAnswers = (questions, answers = []) => {
 
 module.exports = {
   evaluateAnswers,
+  isAnswerCorrect,
   sanitizeSubmittedAnswers,
   sanitizeAnswerPayload
 };

@@ -1,4 +1,4 @@
-import { configureStore } from '@reduxjs/toolkit';
+﻿import { configureStore } from '@reduxjs/toolkit';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { Provider } from 'react-redux';
 
@@ -21,6 +21,7 @@ jest.mock('./services/api', () => ({
   },
   testsAPI: {
     getAll: jest.fn(),
+    getManageable: jest.fn(),
     getById: jest.fn(),
     getQuestions: jest.fn(),
     getManageQuestions: jest.fn(),
@@ -39,12 +40,13 @@ jest.mock('./services/api', () => ({
   },
 }));
 
-const { testsAPI: mockTestsAPI } = require('./services/api');
+const { resultsAPI: mockResultsAPI, testsAPI: mockTestsAPI } = require('./services/api');
 
 let warnSpy;
 
 beforeEach(() => {
   Object.values(mockTestsAPI).forEach((mock) => mock.mockReset());
+  Object.values(mockResultsAPI).forEach((mock) => mock.mockReset());
   warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 });
 
@@ -60,10 +62,11 @@ test('renders constructor home page', () => {
 });
 
 test('allows removing answer options in the question constructor', async () => {
-  mockTestsAPI.getAll.mockResolvedValue({
+  mockTestsAPI.getManageable.mockResolvedValue({
     data: [{ id: 1, title: 'Тест для проверки' }],
   });
   mockTestsAPI.getManageQuestions.mockResolvedValue({ data: [] });
+  mockResultsAPI.getStats.mockResolvedValue({ data: null });
 
   const store = configureStore({
     reducer: {
@@ -115,3 +118,4 @@ test('allows removing answer options in the question constructor', async () => {
   removeButtons().forEach((button) => expect(button).toBeDisabled());
   expect(within(removeButtons()[0].closest('div')).getByRole('textbox')).toHaveAttribute('placeholder', 'Вариант 1');
 });
+

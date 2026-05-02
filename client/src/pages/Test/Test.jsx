@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { testsAPI } from '../../services/api';
 import styles from './Test.module.css';
 
-function formatQuestionCount(count) {
+export function formatQuestionCount(count) {
   const normalizedCount = Number(count) || 0;
   const lastTwoDigits = normalizedCount % 100;
   const lastDigit = normalizedCount % 10;
@@ -21,6 +21,26 @@ function formatQuestionCount(count) {
   }
 
   return `${normalizedCount} вопросов`;
+}
+
+export function formatMinuteLimit(count) {
+  const normalizedCount = Number(count) || 0;
+  const lastTwoDigits = normalizedCount % 100;
+  const lastDigit = normalizedCount % 10;
+
+  if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
+    return `${normalizedCount} минут`;
+  }
+
+  if (lastDigit === 1) {
+    return `${normalizedCount} минута`;
+  }
+
+  if (lastDigit >= 2 && lastDigit <= 4) {
+    return `${normalizedCount} минуты`;
+  }
+
+  return `${normalizedCount} минут`;
 }
 
 function Test() {
@@ -64,7 +84,10 @@ function Test() {
             <div key={test.id} className={styles.testCard}>
               <h3>{test.title}</h3>
               <p>{test.description}</p>
-              <p className={styles.questionCount}>{formatQuestionCount(test.questionCount)}</p>
+              <div className={styles.testMeta}>
+                <p className={styles.questionCount}>{formatQuestionCount(test.questionCount)}</p>
+                <p className={styles.timeLimit}>Время: {formatMinuteLimit(test.questionCount)}</p>
+              </div>
               <Link to={`/test/${test.id}`} className={styles.startButton}>
                 Начать тест
               </Link>

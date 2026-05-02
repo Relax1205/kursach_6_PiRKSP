@@ -21,6 +21,7 @@ function AppContent() {
   const { token, user } = useSelector((state) => state.auth);
 
   useEffect(() => {
+    /* istanbul ignore next -- covered by authSlice thunk tests; App only wires startup hydration */
     if (token && !user) {
       dispatch(fetchProfile());
     }

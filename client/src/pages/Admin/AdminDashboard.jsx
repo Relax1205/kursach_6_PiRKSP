@@ -16,6 +16,14 @@ const SETTINGS_LABELS = {
   teacherTestsRequireModeration: 'Модерация тестов учителей',
 };
 
+const getRequestErrorMessage = (requestError, fallback) => {
+  if (requestError.response?.data?.error) {
+    return requestError.response.data.error;
+  }
+
+  return fallback;
+};
+
 function AdminDashboard() {
   const { user } = useSelector((state) => state.auth);
   const [users, setUsers] = useState([]);
@@ -63,7 +71,7 @@ function AdminDashboard() {
       setSettings(settingsResponse.data);
       setSettingsForm(nextSettingsForm);
     } catch (requestError) {
-      setError(requestError.response?.data?.error || 'Не удалось загрузить админ-панель.');
+      setError(getRequestErrorMessage(requestError, 'Не удалось загрузить админ-панель.'));
     } finally {
       setLoading(false);
     }
@@ -79,7 +87,7 @@ function AdminDashboard() {
       )));
       setMessage('Роль пользователя обновлена.');
     } catch (requestError) {
-      alert(requestError.response?.data?.error || 'Не удалось обновить роль.');
+      alert(getRequestErrorMessage(requestError, 'Не удалось обновить роль.'));
     } finally {
       setSaving(false);
     }
@@ -98,7 +106,7 @@ function AdminDashboard() {
       await loadAdminData();
       setMessage('Пользователь удалён.');
     } catch (requestError) {
-      alert(requestError.response?.data?.error || 'Не удалось удалить пользователя.');
+      alert(getRequestErrorMessage(requestError, 'Не удалось удалить пользователя.'));
     } finally {
       setSaving(false);
     }
@@ -114,7 +122,7 @@ function AdminDashboard() {
       )));
       setMessage('Статус теста обновлён.');
     } catch (requestError) {
-      alert(requestError.response?.data?.error || 'Не удалось обновить тест.');
+      alert(getRequestErrorMessage(requestError, 'Не удалось обновить тест.'));
     } finally {
       setSaving(false);
     }
@@ -136,7 +144,7 @@ function AdminDashboard() {
       setSettingsForm(nextSettingsForm);
       setMessage('Настройки сохранены.');
     } catch (requestError) {
-      alert(requestError.response?.data?.error || 'Не удалось сохранить настройки.');
+      alert(getRequestErrorMessage(requestError, 'Не удалось сохранить настройки.'));
     } finally {
       setSaving(false);
     }

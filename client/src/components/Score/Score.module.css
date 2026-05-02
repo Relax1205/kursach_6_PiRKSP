@@ -6,11 +6,35 @@
   border-radius: 8px;
 }
 
-.scoreText {
+.scoreHeader {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 9px;
+}
+
+.scoreText {
   color: var(--muted);
   font-size: 17px;
   font-weight: 650;
+}
+
+.timer {
+  flex: 0 0 auto;
+  padding: 5px 10px;
+  color: var(--ink);
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.timerWarning {
+  color: #ffffff;
+  background: var(--danger);
+  border-color: var(--danger);
 }
 
 .progressBar {
@@ -25,4 +49,16 @@
   height: 100%;
   background: var(--blue);
   transition: width 0.25s ease;
+}
+
+@media (max-width: 520px) {
+  .scoreHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .timer {
+    width: 100%;
+    text-align: center;
+  }
 }
