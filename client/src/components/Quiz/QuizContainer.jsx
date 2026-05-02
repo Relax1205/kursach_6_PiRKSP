@@ -17,6 +17,14 @@ import styles from './QuizContainer.module.css';
 
 const SECONDS_PER_QUESTION = 60;
 
+export const getElapsedDurationSeconds = (startedAt) => {
+  if (!startedAt) {
+    return null;
+  }
+
+  return Math.max(0, Math.round((Date.now() - startedAt) / 1000));
+};
+
 function QuizContainer() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -117,9 +125,7 @@ function QuizContainer() {
         questionIds: questions.map((question) => question.id),
         answers: userAnswers,
         persistResult: mode === 'main',
-        durationSeconds: startedAtRef.current
-          ? Math.max(0, Math.round((Date.now() - startedAtRef.current) / 1000))
-          : null,
+        durationSeconds: getElapsedDurationSeconds(startedAtRef.current),
       })
     );
   }, [dispatch, isSubmitting, mode, questions, testId, userAnswers]);

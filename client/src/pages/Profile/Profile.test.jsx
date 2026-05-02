@@ -135,6 +135,7 @@ describe('Profile helpers', () => {
     expect(formatDuration(null)).toBe('нет данных');
     expect(formatDuration(45)).toBe('45 сек.');
     expect(formatDuration(125)).toBe('2 мин. 05 сек.');
+    expect(sanitizeReportFileName()).toBe('report');
     expect(sanitizeReportFileName('A:* bad/name')).toBe('A_bad_name');
     expect(getNextAnalyticsId([], '7')).toBe('');
     expect(getNextAnalyticsId([{ testId: 7 }], '7')).toBe('7');
@@ -148,6 +149,14 @@ describe('Profile helpers', () => {
       testId: 4,
       title: 'Test title',
       totalAttempts: 0,
+      questionStats: [],
+      results: [],
+    });
+    expect(normalizeAnalytics(test)).toMatchObject({
+      testId: 4,
+      totalAttempts: 0,
+      averageScore: 0,
+      averagePercent: 0,
       questionStats: [],
       results: [],
     });
@@ -345,5 +354,41 @@ describe('Profile', () => {
 
     expect(await screen.findByText('Не удалось загрузить аналитику преподавателя.')).toBeInTheDocument();
     expect(console.error).toHaveBeenCalledWith('Failed to load analytics:', expect.any(Error));
+  });
+
+  test('handles manageable tests responses without data and exports a short PDF with attempts', async () => {
+    const jsPDF = require('jspdf').default;
+
+    resultsAPI.getMy.mockResolvedValue({ data: [] });
+    testsAPI.getManageable
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({ data: [{ id: 13, title: 'Short report' }] });
+    resultsAPI.getStats.mockResolvedValue({
+      data: {
+        testId: 13,
+        totalAttempts: 1,
+        averageDurationSeconds: 5,
+        questionStats: makeQuestionStats(1),
+        results: [
+          {
+            id: 7,
+            userId: 9,
+            score: 1,
+            totalQuestions: 1,
+            durationSeconds: 5,
+          },
+        ],
+      },
+    });
+
+    const firstRender = renderProfile(authWithRole('teacher'));
+    expect(await screen.findByText('У вас пока нет тестов для аналитики.')).toBeInTheDocument();
+    firstRender.unmount();
+
+    renderProfile(authWithRole('teacher'));
+    expect(await screen.findByText('Short report')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'PDF' }));
+
+    expect(jsPDF.__instance.save).toHaveBeenCalledWith('Short_report-report.pdf');
   });
 });

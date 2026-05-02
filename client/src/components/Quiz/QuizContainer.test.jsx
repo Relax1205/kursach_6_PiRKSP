@@ -2,7 +2,7 @@
 import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
-import QuizContainer from './QuizContainer';
+import QuizContainer, { getElapsedDurationSeconds } from './QuizContainer';
 import { createTestStore } from '../../test-utils/render';
 import { resultsAPI, testsAPI } from '../../services/api';
 
@@ -25,6 +25,19 @@ const baseQuestion = {
   correct: [0],
   optionIndexMap: [0, 1],
 };
+
+describe('QuizContainer helpers', () => {
+  test('calculates elapsed duration from quiz start time', () => {
+    jest.spyOn(Date, 'now').mockReturnValue(10_000);
+
+    expect(getElapsedDurationSeconds(null)).toBeNull();
+    expect(getElapsedDurationSeconds(8_600)).toBe(1);
+    expect(getElapsedDurationSeconds(8_400)).toBe(2);
+    expect(getElapsedDurationSeconds(12_000)).toBe(0);
+
+    Date.now.mockRestore();
+  });
+});
 
 function quizState(overrides = {}) {
   return {
