@@ -172,6 +172,21 @@ describe('Profile helpers', () => {
 describe('Profile', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    const jsPDF = require('jspdf').default;
+    const XLSX = require('xlsx');
+
+    jsPDF.mockImplementation(() => jsPDF.__instance);
+    jsPDF.__instance.setFontSize.mockImplementation(() => {});
+    jsPDF.__instance.splitTextToSize.mockImplementation((text) => [String(text)]);
+    jsPDF.__instance.text.mockImplementation(() => {});
+    jsPDF.__instance.addPage.mockImplementation(() => {});
+    jsPDF.__instance.save.mockImplementation(() => {});
+    XLSX.utils.book_new.mockImplementation(() => ({ sheets: [] }));
+    XLSX.utils.json_to_sheet.mockImplementation((rows) => ({ rows }));
+    XLSX.utils.book_append_sheet.mockImplementation((workbook, sheet, name) => {
+      workbook.sheets.push({ sheet, name });
+    });
+    XLSX.writeFile.mockImplementation(() => {});
     testsAPI.getManageable.mockResolvedValue({ data: [] });
     resultsAPI.getStats.mockResolvedValue({ data: {} });
     jest.spyOn(console, 'error').mockImplementation(() => {});
