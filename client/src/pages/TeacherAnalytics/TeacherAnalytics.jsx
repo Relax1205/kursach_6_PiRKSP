@@ -131,9 +131,9 @@ export const buildTeacherAnalyticsGroups = (report, grouping = 'student') => {
   return Array.from(groupsByKey.values()).map((group) => {
     const correctTotal = group.results.reduce((sum, result) => sum + getCorrectAnswersCount(result), 0);
     const incorrectTotal = group.results.reduce((sum, result) => sum + getIncorrectAnswersCount(result), 0);
-    const averagePercent = group.results.length > 0
-      ? Math.round(group.results.reduce((sum, result) => sum + getResultPercentValue(result), 0) / group.results.length)
-      : 0;
+    const averagePercent = Math.round(
+      group.results.reduce((sum, result) => sum + getResultPercentValue(result), 0) / group.results.length
+    );
 
     return {
       ...group,
@@ -212,15 +212,12 @@ const loadPdfMake = async () => {
     return pdfMakeInstance;
   }
 
-  const [pdfMakeModule, pdfFontsModule] = await Promise.all([
+  const [{ default: pdfMake }, { default: pdfFonts }] = await Promise.all([
     import('pdfmake/build/pdfmake'),
     import('pdfmake/build/vfs_fonts'),
   ]);
-  const pdfMake = pdfMakeModule.default || pdfMakeModule;
 
-  if (typeof pdfMake.addVirtualFileSystem === 'function') {
-    pdfMake.addVirtualFileSystem(pdfFontsModule.default || pdfFontsModule);
-  }
+  pdfMake.addVirtualFileSystem(pdfFonts);
 
   pdfMakeInstance = pdfMake;
 
