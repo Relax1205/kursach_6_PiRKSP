@@ -1,0 +1,255 @@
+.container {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 4px 0;
+}
+
+.analyticsSection {
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.sectionHeader h1 {
+  margin: 0;
+  padding-bottom: 14px;
+  color: var(--ink);
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+.exportActions {
+  display: flex;
+  gap: 8px;
+  padding-bottom: 14px;
+}
+
+.exportActions button,
+.groupingButton {
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid var(--line-strong);
+  background: #fff;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.exportActions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.exportActions button:not(:disabled):hover,
+.groupingButton:hover {
+  border-color: var(--accent);
+  color: var(--accent-dark);
+}
+
+.teacherAnalytics {
+  display: grid;
+  gap: 16px;
+}
+
+.teacherToolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.summaryStrip {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.summaryStrip div,
+.groupStats div {
+  min-width: 116px;
+  padding: 10px 12px;
+  background: #f7f8f4;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.summaryStrip strong,
+.groupStats strong {
+  display: block;
+  color: var(--ink);
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.summaryStrip span,
+.groupStats span,
+.groupHeader > div:first-child span,
+.performanceTable td span {
+  display: block;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.groupingControl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.groupingControl > span {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.groupingButtonActive {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.groupingButtonActive:hover {
+  color: #fff;
+}
+
+.analyticsGroups {
+  display: grid;
+  gap: 14px;
+}
+
+.analyticsGroup {
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.groupHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.groupHeader h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 21px;
+  line-height: 1.3;
+}
+
+.groupStats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.performanceTableWrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.performanceTable {
+  width: 100%;
+  min-width: 820px;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.performanceTable th,
+.performanceTable td {
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.performanceTable th {
+  color: var(--muted);
+  background: #f7f8f4;
+  font-weight: 700;
+}
+
+.performanceTable tr:last-child td {
+  border-bottom: 0;
+}
+
+.performanceTable td {
+  color: var(--ink-soft);
+}
+
+.performanceTable details {
+  max-width: 320px;
+}
+
+.performanceTable summary {
+  color: var(--accent-dark);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.answerList {
+  display: grid;
+  gap: 10px;
+  margin: 10px 0 0;
+  padding-left: 18px;
+}
+
+.answerList li {
+  color: var(--ink-soft);
+}
+
+.answerEmpty {
+  margin: 10px 0 0;
+  color: var(--muted);
+}
+
+.empty {
+  margin: 0;
+  padding: 24px;
+  background: #f7f8f4;
+  border: 1px dashed var(--line-strong);
+  border-radius: 8px;
+  color: var(--muted);
+}
+
+@media (max-width: 640px) {
+  .analyticsSection {
+    padding: 18px;
+  }
+
+  .sectionHeader,
+  .groupHeader,
+  .teacherToolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .exportActions,
+  .groupStats,
+  .summaryStrip {
+    width: 100%;
+  }
+
+  .exportActions button,
+  .groupingButton,
+  .summaryStrip div,
+  .groupStats div {
+    flex: 1 1 140px;
+  }
+}

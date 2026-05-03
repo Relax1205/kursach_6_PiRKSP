@@ -71,141 +71,13 @@
   border-radius: 8px;
 }
 
-.analyticsSection {
-  margin-bottom: 22px;
-  padding: 24px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-}
-
-.resultsSection h2,
-.analyticsSection h2 {
+.resultsSection h2 {
   margin: 0 0 20px;
   padding-bottom: 14px;
   border-bottom: 1px solid var(--line);
   color: var(--ink);
   font-size: 26px;
   line-height: 1.25;
-}
-
-.sectionHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.sectionHeader h2 {
-  flex: 1;
-}
-
-.exportActions {
-  display: flex;
-  gap: 8px;
-}
-
-.exportActions button {
-  min-height: 38px;
-  padding: 8px 14px;
-  border: 1px solid var(--line-strong);
-  border-radius: 6px;
-  background: #fff;
-  color: var(--ink);
-  cursor: pointer;
-  font-weight: 650;
-}
-
-.exportActions button:hover:not(:disabled) {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.exportActions button:disabled {
-  color: var(--muted);
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
-.analyticsControls {
-  margin-bottom: 18px;
-}
-
-.analyticsControls label {
-  display: grid;
-  max-width: 460px;
-  gap: 8px;
-  color: var(--muted);
-  font-weight: 600;
-}
-
-.analyticsControls select {
-  min-height: 40px;
-  padding: 8px 10px;
-  border: 1px solid var(--line-strong);
-  border-radius: 6px;
-  background: #fff;
-  color: var(--ink);
-}
-
-.metricGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 18px;
-}
-
-.metricGrid div {
-  display: grid;
-  gap: 6px;
-  min-height: 76px;
-  padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fff;
-}
-
-.metricGrid span {
-  color: var(--muted);
-  font-size: 14px;
-}
-
-.metricGrid strong {
-  color: var(--ink);
-  font-size: 24px;
-  line-height: 1.15;
-}
-
-.chartGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.chartPanel,
-.chartPanelWide {
-  min-width: 0;
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fff;
-}
-
-.chartPanelWide {
-  grid-column: 1 / -1;
-}
-
-.chartPanel h3,
-.chartPanelWide h3 {
-  margin: 0 0 12px;
-  color: var(--ink);
-  font-size: 18px;
-  line-height: 1.3;
-}
-
-.chartArea {
-  width: 100%;
-  height: 280px;
 }
 
 .empty {
@@ -326,20 +198,8 @@
 
 @media (max-width: 640px) {
   .profileCard,
-  .analyticsSection,
   .resultsSection {
     padding: 18px;
-  }
-
-  .sectionHeader,
-  .exportActions {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .metricGrid,
-  .chartGrid {
-    grid-template-columns: 1fr;
   }
 
   .infoItem {

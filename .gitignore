@@ -42,5 +42,6 @@ temp/
 client/.npm-cache/
 server/.npm-cache/
 .codex_tmp/
+command_for_deploy.txt
 .vendor/
 РКСП-объеденённый.pdf

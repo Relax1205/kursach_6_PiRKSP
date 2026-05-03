@@ -15,6 +15,7 @@ import Register from './pages/Register/Register';
 import Profile from './pages/Profile/Profile';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import QuestionsAdmin from './pages/Admin/QuestionsAdmin';
+import TeacherAnalytics from './pages/TeacherAnalytics/TeacherAnalytics';
 
 function AppContent() {
   const dispatch = useDispatch();
@@ -39,6 +40,7 @@ function AppContent() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/analytics" element={<TeacherAnalytics />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/questions" element={<QuestionsAdmin />} />
             <Route path="/constructor" element={<QuestionsAdmin />} />

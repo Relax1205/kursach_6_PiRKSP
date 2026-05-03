@@ -110,10 +110,12 @@ describe('api service', () => {
     resultsAPI.getMy();
     resultsAPI.getMistakes(4);
     resultsAPI.getStats(5);
+    resultsAPI.getTeacherPerformance();
     expect(mockApiClient.post).toHaveBeenCalledWith('/api/results', { testId: 1 });
     expect(mockApiClient.get).toHaveBeenCalledWith('/api/results/my');
     expect(mockApiClient.get).toHaveBeenCalledWith('/api/results/4/mistakes');
     expect(mockApiClient.get).toHaveBeenCalledWith('/api/results/test/5/stats');
+    expect(mockApiClient.get).toHaveBeenCalledWith('/api/results/teacher/performance');
 
     adminAPI.getUsers();
     adminAPI.updateUserRole(1, 'admin');

@@ -33,6 +33,81 @@ const getAnswerByQuestionId = (answers, questionId) => {
   return answers.find((answerEntry) => Number(answerEntry.questionId) === Number(questionId))?.answer;
 };
 
+const getChoiceLabel = (options, index) => {
+  const normalizedIndex = Number(index);
+
+  if (Array.isArray(options) && options[normalizedIndex] !== undefined) {
+    return String(options[normalizedIndex]);
+  }
+
+  return `Вариант ${normalizedIndex + 1}`;
+};
+
+const formatChoiceAnswer = (question, answer) => {
+  if (!Array.isArray(answer) || answer.length === 0) {
+    return 'Нет ответа';
+  }
+
+  return answer.map((optionIndex) => getChoiceLabel(question.options, optionIndex)).join(', ');
+};
+
+const normalizeMatchingAnswer = (answer) => {
+  if (Array.isArray(answer)) {
+    return answer.reduce((accumulator, leftIndex, rightIndex) => ({
+      ...accumulator,
+      [rightIndex]: leftIndex
+    }), {});
+  }
+
+  if (answer && typeof answer === 'object') {
+    return answer;
+  }
+
+  return {};
+};
+
+const formatMatchingAnswer = (question, answer) => {
+  const normalizedAnswer = normalizeMatchingAnswer(answer);
+  const entries = Object.entries(normalizedAnswer);
+
+  if (entries.length === 0) {
+    return 'Нет ответа';
+  }
+
+  return entries
+    .sort(([leftRightIndex], [rightRightIndex]) => Number(leftRightIndex) - Number(rightRightIndex))
+    .map(([rightIndex, leftIndex]) => {
+      const leftLabel = getChoiceLabel(question.left, leftIndex);
+      const rightLabel = getChoiceLabel(question.right, rightIndex);
+      return `${leftLabel} -> ${rightLabel}`;
+    })
+    .join('; ');
+};
+
+const formatAnswerForReport = (question, answer) => {
+  if (question.type === 'matching') {
+    return formatMatchingAnswer(question, answer);
+  }
+
+  return formatChoiceAnswer(question, answer);
+};
+
+const buildAnswerDetails = (questions, result) => {
+  return questions.map((question) => {
+    const studentAnswer = getAnswerByQuestionId(result.answers, question.id);
+    const isCorrect = isAnswerCorrect(question, studentAnswer);
+
+    return {
+      questionId: question.id,
+      order: question.order,
+      questionText: question.questionText,
+      isCorrect,
+      studentAnswer: formatAnswerForReport(question, studentAnswer),
+      correctAnswer: formatAnswerForReport(question, question.correct)
+    };
+  });
+};
+
 exports.saveResult = async (req, res) => {
   try {
     const { testId, questionIds } = req.body;
@@ -225,6 +300,92 @@ exports.getTestStatistics = async (req, res) => {
       averagePercent,
       averageDurationSeconds,
       questionStats,
+      results: serializedResults
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getTeacherPerformance = async (req, res) => {
+  try {
+    const tests = await Test.findAll({
+      where: { authorId: req.user.id },
+      order: [['id', 'ASC']]
+    });
+    const testIds = tests.map((test) => test.id);
+
+    if (testIds.length === 0) {
+      return res.json({
+        totalAttempts: 0,
+        tests: [],
+        results: []
+      });
+    }
+
+    const [questions, results] = await Promise.all([
+      Question.findAll({
+        where: { testId: { [Op.in]: testIds } },
+        order: [['testId', 'ASC'], ['order', 'ASC']],
+        attributes: ['id', 'testId', 'type', 'questionText', 'options', 'left', 'right', 'correct', 'order']
+      }),
+      TestResult.findAll({
+        where: { testId: { [Op.in]: testIds } },
+        include: [
+          {
+            model: User,
+            as: 'user',
+            attributes: ['id', 'name', 'email']
+          },
+          {
+            model: Test,
+            as: 'test',
+            attributes: ['id', 'title']
+          }
+        ],
+        order: [['completedAt', 'DESC']]
+      })
+    ]);
+
+    const questionsByTestId = questions.reduce((accumulator, question) => {
+      const testQuestionList = accumulator.get(question.testId) || [];
+      testQuestionList.push(question);
+      accumulator.set(question.testId, testQuestionList);
+      return accumulator;
+    }, new Map());
+
+    const serializedResults = results.map((result) => {
+      const resultData = result.toJSON();
+      const answerDetails = buildAnswerDetails(questionsByTestId.get(resultData.testId) || [], resultData);
+      const correctAnswerCount = Number(resultData.score) || 0;
+      const totalQuestions = Number(resultData.totalQuestions) || 0;
+
+      return {
+        resultId: resultData.id,
+        testId: resultData.testId,
+        testTitle: resultData.test?.title || `Тест #${resultData.testId}`,
+        student: resultData.user,
+        score: resultData.score,
+        totalQuestions: resultData.totalQuestions,
+        correctAnswerCount,
+        incorrectAnswerCount: Math.max(0, totalQuestions - correctAnswerCount),
+        percent: getResultPercent(resultData),
+        durationSeconds: normalizeDurationSeconds(resultData.durationSeconds),
+        completedAt: resultData.completedAt,
+        correctAnswers: answerDetails.filter((answerDetail) => answerDetail.isCorrect),
+        answerDetails
+      };
+    });
+
+    const testsSummary = tests.map((test) => ({
+      id: test.id,
+      title: test.title,
+      totalAttempts: serializedResults.filter((result) => result.testId === test.id).length
+    }));
+
+    res.json({
+      totalAttempts: serializedResults.length,
+      tests: testsSummary,
       results: serializedResults
     });
   } catch (error) {

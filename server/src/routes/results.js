@@ -20,6 +20,11 @@ router.post('/',
   resultController.saveResult
 );
 router.get('/my', auth, resultController.getUserResults);
+router.get('/teacher/performance',
+  auth,
+  role('teacher'),
+  resultController.getTeacherPerformance
+);
 router.get('/:id/mistakes',
   auth,
   [

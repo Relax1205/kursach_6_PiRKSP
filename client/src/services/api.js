@@ -57,6 +57,7 @@ export const resultsAPI = {
   getMy: () => api.get('/api/results/my'),
   getMistakes: (id) => api.get(`/api/results/${id}/mistakes`),
   getStats: (testId) => api.get(`/api/results/test/${testId}/stats`),
+  getTeacherPerformance: () => api.get('/api/results/teacher/performance'),
 };
 
 export const adminAPI = {

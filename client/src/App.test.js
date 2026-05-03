@@ -37,6 +37,7 @@ jest.mock('./services/api', () => ({
     save: jest.fn(),
     getMy: jest.fn(),
     getStats: jest.fn(),
+    getTeacherPerformance: jest.fn(),
   },
 }));
 

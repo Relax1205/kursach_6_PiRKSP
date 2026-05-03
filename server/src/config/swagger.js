@@ -345,6 +345,20 @@ const openApiDocument = {
         }
       }
     },
+    '/api/results/teacher/performance': {
+      get: {
+        tags: ['Results'],
+        summary: 'Get teacher performance report',
+        description: 'Available only for teachers. Returns student attempts for tests created by the current teacher.',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: response('Teacher performance report.', ref('TeacherPerformanceReport')),
+          401: unauthorized,
+          403: forbidden,
+          500: serverError
+        }
+      }
+    },
     '/api/results/test/{testId}/stats': {
       get: {
         tags: ['Results'],
@@ -1155,6 +1169,108 @@ const openApiDocument = {
           results: {
             type: 'array',
             items: ref('TestResult')
+          }
+        }
+      },
+      AnswerDetail: {
+        type: 'object',
+        properties: {
+          questionId: {
+            type: 'integer'
+          },
+          order: {
+            type: 'integer'
+          },
+          questionText: {
+            type: 'string'
+          },
+          isCorrect: {
+            type: 'boolean'
+          },
+          studentAnswer: {
+            type: 'string',
+            example: 'Ответ студента'
+          },
+          correctAnswer: {
+            type: 'string',
+            example: 'Правильный ответ'
+          }
+        }
+      },
+      TeacherPerformanceResult: {
+        type: 'object',
+        properties: {
+          resultId: {
+            type: 'integer'
+          },
+          testId: {
+            type: 'integer'
+          },
+          testTitle: {
+            type: 'string'
+          },
+          student: ref('Author'),
+          score: {
+            type: 'integer'
+          },
+          totalQuestions: {
+            type: 'integer'
+          },
+          correctAnswerCount: {
+            type: 'integer'
+          },
+          incorrectAnswerCount: {
+            type: 'integer'
+          },
+          percent: {
+            type: 'integer',
+            minimum: 0,
+            maximum: 100
+          },
+          durationSeconds: {
+            type: 'integer',
+            nullable: true
+          },
+          completedAt: {
+            type: 'string',
+            format: 'date-time'
+          },
+          correctAnswers: {
+            type: 'array',
+            items: ref('AnswerDetail')
+          },
+          answerDetails: {
+            type: 'array',
+            items: ref('AnswerDetail')
+          }
+        }
+      },
+      TeacherPerformanceReport: {
+        type: 'object',
+        properties: {
+          totalAttempts: {
+            type: 'integer'
+          },
+          tests: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                id: {
+                  type: 'integer'
+                },
+                title: {
+                  type: 'string'
+                },
+                totalAttempts: {
+                  type: 'integer'
+                }
+              }
+            }
+          },
+          results: {
+            type: 'array',
+            items: ref('TeacherPerformanceResult')
           }
         }
       },

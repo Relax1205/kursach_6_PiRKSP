@@ -49,6 +49,7 @@ describe('Header', () => {
     });
 
     expect(screen.getByText('Конструктор')).toBeInTheDocument();
+    expect(screen.getByText('Аналитика')).toBeInTheDocument();
     expect(screen.queryByText('Администрирование')).not.toBeInTheDocument();
     fireEvent.click(screen.getByText('Выйти'));
     expect(store.getState().auth.isAuthenticated).toBe(false);
@@ -65,6 +66,7 @@ describe('Header', () => {
     });
 
     expect(screen.getByText('Конструктор')).toBeInTheDocument();
+    expect(screen.queryByText('Аналитика')).not.toBeInTheDocument();
     expect(screen.getByText('Администрирование')).toBeInTheDocument();
   });
 });
