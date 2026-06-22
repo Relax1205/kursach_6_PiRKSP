@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 package-lock.json
+!server/tests/fuzzing/package-lock.json
 
 # Environment
 .env
@@ -29,6 +30,9 @@ coverage/
 tests/fuzzing/results/
 server/tests/fuzzing/results/
 server/tests/fuzzing/tests/
+server/tests/fuzzing/artifacts/*
+!server/tests/fuzzing/artifacts/.gitkeep
+server/tests/fuzzing/coverage/
 
 # Docker
 docker-compose.override.yml

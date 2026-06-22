@@ -1,42 +1,77 @@
-# Fuzzing Tests
+# Coverage-guided fuzzing
 
-В папке лежит кастомный Node.js-скрипт для базовой фаззинг-проверки API.
+В каталоге настроен настоящий coverage-guided fuzzing на базе Jazzer.js 4
+(libFuzzer). В отличие от перебора заранее заданных payload, движок:
 
-## Что покрывает скрипт
+1. инструментирует `server/src/utils/grading.js` и получает обратную связь по
+   достигнутым ветвям;
+2. мутирует входные байты и сохраняет входы, которые увеличивают покрытие;
+3. начинает поиск с воспроизводимого corpus из `corpus/grading/`;
+4. сохраняет минимизированный вход при падении в `artifacts/`.
 
-- SQL injection payloads
-- XSS payloads
-- Проверку защищённых маршрутов без валидного токена
-- RBAC для ролей `admin`, `teacher`, `student`
-- Path traversal payloads
-- Command injection payloads
-- Большие входные данные
-- Null byte payloads
+## Fuzz target и проверяемые свойства
+
+`grading.fuzz.js` преобразует произвольные байты в вопросы и ответы, вызывает
+реальную логику `evaluateAnswers`, `sanitizeSubmittedAnswers`,
+`sanitizeAnswerPayload` и `isAnswerCorrect`, затем проверяет инварианты:
+
+- нормализованные идентификаторы и варианты ответа являются целыми числами;
+- массивы ответов отсортированы и не содержат дубликатов;
+- нормализация идемпотентна;
+- оценка находится в диапазоне от 0 до числа вопросов;
+- количество и идентификаторы неправильных ответов согласованы с оценкой.
+
+Необработанное исключение, нарушение инварианта или timeout считаются ошибкой и
+приводят к ненулевому коду завершения. Встроенные security-детекторы Jazzer.js
+для этого target отключены: тестируемая чистая функция не выполняет команды,
+файловые или сетевые операции, поэтому такие hooks здесь не дают покрытия.
+
+## Установка
+
+Из корня репозитория:
+
+```bash
+npm ci --prefix server/tests/fuzzing
+```
 
 ## Запуск
 
-Перед запуском fuzzing должен быть доступен backend на `http://localhost:5000`.
-Для Docker-сценария:
+Непрерывный локальный поиск в течение 60 секунд:
 
 ```bash
-docker compose --env-file .env.example up -d --build backend
-docker compose --env-file .env.example exec -T backend npm run seed
+npm run fuzz
 ```
+
+Ограниченный и воспроизводимый CI-запуск (20 000 мутаций):
 
 ```bash
-cd server/tests/fuzzing
-npm install
-npm test
+npm run fuzz:ci
 ```
 
-По умолчанию цель тестирования: `http://localhost:5000`.
-
-Можно переопределить:
+Повтор только сохранённого corpus без новых мутаций:
 
 ```bash
-BASE_URL=http://localhost:5000 npm test
+npm run fuzz:regression
 ```
 
-## Отчёт
+Отчёт о покрытии сохранённого corpus (`server/tests/fuzzing/coverage/`):
 
-JSON-отчёт сохраняется в `results/fuzzing-report-*.json`.
+```bash
+npm run fuzz:coverage
+```
+
+Во время фаззинга строки `cov`, `ft` и `corp` в выводе libFuzzer показывают
+рост покрытия, числа признаков и corpus. Найденный crash нужно оставить в
+`corpus/grading/` как регрессионный вход после исправления причины.
+
+## Отдельные негативные API-проверки
+
+Старый сценарий с фиксированными SQLi/XSS/RBAC payload сохранён как набор
+security API checks, но больше не называется фаззингом:
+
+```bash
+# backend должен быть запущен на http://localhost:5000
+npm run security:api
+```
+
+Его JSON-отчёты сохраняются в `server/tests/fuzzing/results/`.

@@ -1,13 +1,19 @@
 {
   "name": "fuzzing-tests",
   "version": "1.0.0",
+  "private": true,
   "scripts": {
-    "test": "node fuzzing.js",
-    "test:sql": "node fuzzing.js --sql",
-    "test:xss": "node fuzzing.js --xss",
-    "test:auth": "node fuzzing.js --auth"
+    "test": "npm run fuzz:ci",
+    "fuzz": "jazzer grading.fuzz.js -i src -e node_modules --disableBugDetectors=.* --sync --timeout=1000 corpus/grading -- -max_total_time=60 -max_len=4096 -artifact_prefix=artifacts/",
+    "fuzz:ci": "jazzer grading.fuzz.js -i src -e node_modules --disableBugDetectors=.* --sync --timeout=1000 corpus/grading -- -runs=20000 -max_len=4096 -seed=20260621 -artifact_prefix=artifacts/",
+    "fuzz:regression": "jazzer grading.fuzz.js -i src -e node_modules --disableBugDetectors=.* --sync --mode=regression corpus/grading",
+    "fuzz:coverage": "jazzer grading.fuzz.js -i src -e node_modules --disableBugDetectors=.* --sync --mode=regression --coverage --coverageDirectory=coverage corpus/grading",
+    "security:api": "node fuzzing.js"
   },
   "dependencies": {
     "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@jazzer.js/core": "^4.0.0"
   }
 }

@@ -49,8 +49,6 @@ const ensureDefaultSettings = async () => {
 };
 
 const getSettings = async () => {
-  await ensureDefaultSettings();
-
   const settings = await SystemSetting.findAll({
     order: [['key', 'ASC']]
   });
@@ -69,8 +67,6 @@ const getSettingValue = async (key) => {
 };
 
 const updateSettings = async (settings, userId) => {
-  await ensureDefaultSettings();
-
   for (const [key, value] of Object.entries(settings)) {
     const normalizedValue = normalizeSettingValue(key, value);
 

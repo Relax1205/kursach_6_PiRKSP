@@ -1,7 +1,12 @@
+x-backend-image: &backend-image
+  build:
+    context: ./server
+    dockerfile: Dockerfile
+  image: test-constructor-backend:${APP_VERSION:-local}
+
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: testdb
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -18,11 +23,21 @@ services:
     networks:
       - app-network
 
+  release:
+    <<: *backend-image
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      NODE_ENV: ${NODE_ENV:-production}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+    command: npm run release
+    restart: "no"
+
   backend:
-    build:
-      context: ./server
-      dockerfile: Dockerfile
-    container_name: backend
+    <<: *backend-image
     restart: unless-stopped
     environment:
       PORT: 5000
@@ -33,6 +48,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      release:
+        condition: service_completed_successfully
     expose:
       - "5000"
     networks:
@@ -43,9 +60,6 @@ services:
     build:
       context: ./client
       dockerfile: Dockerfile
-      args:
-        REACT_APP_API_URL: ${REACT_APP_API_URL}
-    container_name: frontend
     restart: unless-stopped
     depends_on:
       - backend
@@ -56,7 +70,6 @@ services:
 
   nginx:
     image: nginx:alpine
-    container_name: nginx
     restart: unless-stopped
     ports:
       - "80:80"

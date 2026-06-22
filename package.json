@@ -8,6 +8,11 @@
     "test:server": "npm --prefix server test",
     "coverage": "npm run coverage:client && npm run coverage:server",
     "coverage:client": "npm --prefix client run coverage",
-    "coverage:server": "npm --prefix server run coverage"
+    "coverage:server": "npm --prefix server run coverage",
+    "fuzz": "npm --prefix server/tests/fuzzing run fuzz",
+    "fuzz:ci": "npm --prefix server/tests/fuzzing run fuzz:ci",
+    "fuzz:regression": "npm --prefix server/tests/fuzzing run fuzz:regression",
+    "fuzz:coverage": "npm --prefix server/tests/fuzzing run fuzz:coverage",
+    "security:api": "npm --prefix server/tests/fuzzing run security:api"
   }
 }

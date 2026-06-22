@@ -127,10 +127,10 @@
         <mxCell id="I-4RbtiwFnrm6dnFfTIp-69" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Backend Express&lt;br&gt;&lt;li data-section-id=&quot;3ytwg&quot; data-start=&quot;2509&quot; data-end=&quot;2519&quot;&gt;REST API&lt;/li&gt;&lt;li data-section-id=&quot;18wgj8h&quot; data-start=&quot;2520&quot; data-end=&quot;2543&quot;&gt;Авторизация через JWT&lt;/li&gt;&lt;li data-section-id=&quot;1sj43wt&quot; data-start=&quot;2544&quot; data-end=&quot;2560&quot;&gt;Проверка ролей&lt;/li&gt;&lt;li data-section-id=&quot;yaa5xk&quot; data-start=&quot;2561&quot; data-end=&quot;2585&quot;&gt;CRUD тестов и вопросов&lt;/li&gt;&lt;li data-section-id=&quot;1c0qgj4&quot; data-start=&quot;2586&quot; data-end=&quot;2610&quot;&gt;Сохранение результатов&lt;/li&gt;Node.js&lt;br&gt;JWT Auth&lt;br&gt;Role Middleware&lt;br&gt;Valida&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;tion&lt;/span&gt;" vertex="1">
           <mxGeometry height="153" width="286.5" x="1261" y="-317" as="geometry" />
         </mxCell>
-        <mxCell id="I-4RbtiwFnrm6dnFfTIp-70" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="PostgreSQL&lt;br&gt;&lt;li data-section-id=&quot;ckht&quot; data-start=&quot;2627&quot; data-end=&quot;2641&quot;&gt;Пользователи&lt;/li&gt;&lt;li data-section-id=&quot;1pqwz4n&quot; data-start=&quot;2642&quot; data-end=&quot;2649&quot;&gt;Тесты&lt;/li&gt;&lt;li data-section-id=&quot;50ewa7&quot; data-start=&quot;2650&quot; data-end=&quot;2659&quot;&gt;Вопросы&lt;/li&gt;&lt;li data-section-id=&quot;zar079&quot; data-start=&quot;2660&quot; data-end=&quot;2672&quot;&gt;Результаты&lt;/li&gt;users&lt;br&gt;tests&lt;br&gt;questions&lt;br&gt;results" vertex="1">
+        <mxCell id="I-4RbtiwFnrm6dnFfTIp-70" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="PostgreSQL&lt;br&gt;&lt;li data-section-id=&quot;ckht&quot; data-start=&quot;2627&quot; data-end=&quot;2641&quot;&gt;Пользователи&lt;/li&gt;&lt;li data-section-id=&quot;1pqwz4n&quot; data-start=&quot;2642&quot; data-end=&quot;2649&quot;&gt;Тесты&lt;/li&gt;&lt;li data-section-id=&quot;50ewa7&quot; data-start=&quot;2650&quot; data-end=&quot;2659&quot;&gt;Вопросы&lt;/li&gt;&lt;li data-section-id=&quot;zar079&quot; data-start=&quot;2660&quot; data-end=&quot;2672&quot;&gt;Результаты&lt;/li&gt;users&lt;br&gt;tests&lt;br&gt;questions&lt;br&gt;test_results&lt;br&gt;system_settings" vertex="1">
           <mxGeometry height="136" width="157" x="1325.75" y="-95" as="geometry" />
         </mxCell>
-        <mxCell id="I-4RbtiwFnrm6dnFfTIp-72" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="HTTP/HTTPS" vertex="1">
+        <mxCell id="I-4RbtiwFnrm6dnFfTIp-72" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="HTTP (порт 80)&lt;br&gt;TLS не настроен" vertex="1">
           <mxGeometry height="30" width="60" x="1743" y="360" as="geometry" />
         </mxCell>
         <mxCell id="I-4RbtiwFnrm6dnFfTIp-74" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Axios / REST API запросы" vertex="1">
@@ -170,7 +170,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="I-4RbtiwFnrm6dnFfTIp-81" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Backend&lt;br&gt;Node.js /Express&lt;br&gt;REST API&lt;br&gt;JWT Auth&lt;br&gt;Role Middleware&lt;br&gt;Validation&lt;br&gt;Sequelize ORM&lt;br&gt;Swagger / OpenAPI&lt;br&gt;System Settings&lt;br&gt;Grading Serveice" vertex="1">
+        <mxCell id="I-4RbtiwFnrm6dnFfTIp-81" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Backend&lt;br&gt;один Node.js / Express процесс&lt;br&gt;REST API&lt;br&gt;JWT Auth&lt;br&gt;Role Middleware&lt;br&gt;Validation&lt;br&gt;Sequelize ORM&lt;br&gt;Swagger / OpenAPI&lt;br&gt;System Settings&lt;br&gt;Grading utility" vertex="1">
           <mxGeometry height="150.62" width="145" x="1817" y="499.94" as="geometry" />
         </mxCell>
         <mxCell id="I-4RbtiwFnrm6dnFfTIp-82" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="PostgreSQL&lt;br&gt;Database&lt;div&gt;users&lt;br&gt;tests&lt;br&gt;questions&lt;br&gt;test_results&lt;br&gt;system_settings&lt;/div&gt;" vertex="1">
@@ -230,7 +230,7 @@
         <mxCell id="NncqvjgI55Xu8T1PkJ1j-10" parent="I-4RbtiwFnrm6dnFfTIp-96" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="Teacher Analytics" vertex="1">
           <mxGeometry height="26" width="150" y="346" as="geometry" />
         </mxCell>
-        <mxCell id="I-4RbtiwFnrm6dnFfTIp-101" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=34;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="Backend Client&lt;br&gt;&amp;lt;&amp;lt;component&amp;gt;&amp;gt;" vertex="1">
+        <mxCell id="I-4RbtiwFnrm6dnFfTIp-101" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=34;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="Backend API&lt;br&gt;&amp;lt;&amp;lt;component&amp;gt;&amp;gt;" vertex="1">
           <mxGeometry height="372" width="150" x="2662" y="504.5" as="geometry" />
         </mxCell>
         <mxCell id="I-4RbtiwFnrm6dnFfTIp-102" parent="I-4RbtiwFnrm6dnFfTIp-101" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="Express App" vertex="1">
@@ -317,7 +317,7 @@
         <mxCell id="NncqvjgI55Xu8T1PkJ1j-19" parent="I-4RbtiwFnrm6dnFfTIp-114" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="Docker Network" vertex="1">
           <mxGeometry height="26" width="175" y="190" as="geometry" />
         </mxCell>
-        <mxCell id="NncqvjgI55Xu8T1PkJ1j-18" parent="I-4RbtiwFnrm6dnFfTIp-114" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="Render Deploy" vertex="1">
+        <mxCell id="NncqvjgI55Xu8T1PkJ1j-18" parent="I-4RbtiwFnrm6dnFfTIp-114" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="One-off release process" vertex="1">
           <mxGeometry height="26" width="175" y="216" as="geometry" />
         </mxCell>
         <mxCell id="I-4RbtiwFnrm6dnFfTIp-125" edge="1" parent="1" source="I-4RbtiwFnrm6dnFfTIp-100" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="I-4RbtiwFnrm6dnFfTIp-105">
@@ -884,7 +884,7 @@
             <mxPoint x="2480" y="898" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="NncqvjgI55Xu8T1PkJ1j-24" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="сборка и запуск&lt;br&gt;backend container" vertex="1">
+        <mxCell id="NncqvjgI55Xu8T1PkJ1j-24" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="build → release → run&lt;br&gt;один backend image" vertex="1">
           <mxGeometry height="30" width="105" x="2539" y="862" as="geometry" />
         </mxCell>
         <mxCell id="NncqvjgI55Xu8T1PkJ1j-25" edge="1" parent="1" source="I-4RbtiwFnrm6dnFfTIp-123" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=1.058;exitDx=0;exitDy=0;exitPerimeter=0;" target="I-4RbtiwFnrm6dnFfTIp-111">

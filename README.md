@@ -49,7 +49,8 @@
   - модерация/публикация тестов;
   - системные настройки.
 - Swagger UI и OpenAPI JSON для REST API.
-- CI/CD через GitHub Actions: тесты, сборка/запуск контейнеров, push образов в Docker Hub.
+- CI через GitHub Actions: тесты, fuzzing, smoke test контейнеров и публикация
+  образов в Docker Hub; автоматического deployment на VPS нет.
 
 ## Стек технологий
 
@@ -87,20 +88,32 @@
 
 ## Архитектура
 
+Проект реализован как **контейнеризированный модульный монолит**, а не как
+набор микросервисов: вся серверная бизнес-логика работает в одном процессе
+Express и использует одну PostgreSQL.
+
 ```text
 Browser
   |
-  | HTTP
+  | HTTP :80
   v
-Nginx reverse proxy :80
-  |-- /       -> frontend nginx container :80
-  `-- /api/*  -> backend Express container :5000
-                 |
-                 v
-              PostgreSQL :5432
+edge nginx
+  |-- /       -> frontend nginx :80 -> React SPA
+  `-- /api/*  -> backend Express :5000 -> PostgreSQL :5432
 ```
 
-Локально также доступны прямые порты:
+В production наружу опубликован только edge nginx. TLS в текущей конфигурации
+не настроен. Административные операции с БД выполняются отдельным одноразовым
+`release`-процессом; runtime backend при старте схему и настройки не изменяет.
+
+Полное описание компонентов, слоёв, потоков запросов, модели данных, startup-
+последовательности и фактической границы CI/CD:
+
+- [Архитектура системы](docs/ARCHITECTURE.md);
+- [Deployment на Ubuntu/VPS](docs/DEPLOYMENT.md);
+- [Соответствие Twelve-Factor App](docs/TWELVE_FACTOR.md).
+
+В локальном Compose дополнительно доступны прямые порты:
 
 - `http://localhost` - приложение через общий nginx reverse proxy;
 - `http://localhost:3001` - frontend-контейнер напрямую;
@@ -111,7 +124,11 @@ Nginx reverse proxy :80
 
 ```text
 .
-|-- .github/workflows/ci-cd.yml       # CI/CD: тесты, Docker smoke test, Docker Hub push
+|-- .github/workflows/ci-cd.yml       # CI, Docker smoke test и публикация images
+|-- docs/
+|   |-- ARCHITECTURE.md               # Фактические компоненты, связи и runtime
+|   |-- DEPLOYMENT.md                 # Build/release/run, backup и rollback
+|   `-- TWELVE_FACTOR.md              # Проверяемое соответствие 12 факторам
 |-- client/                           # React SPA
 |   |-- Dockerfile                    # Production-сборка frontend через nginx
 |   |-- nginx.conf                    # SPA fallback для React Router
@@ -122,6 +139,9 @@ Nginx reverse proxy :80
 |   |-- init.sql
 |   |-- package.json
 |   |-- src/
+|   |   |-- app.js                    # Express application без запуска/миграций
+|   |   |-- server.js                 # Runtime lifecycle и graceful shutdown
+|   |   |-- release.js                # Одноразовые schema/settings operations
 |   |   |-- config/                   # database, swagger
 |   |   |-- controllers/
 |   |   |-- middleware/
@@ -152,7 +172,6 @@ POSTGRES_USER=user
 POSTGRES_PASSWORD=password
 JWT_SECRET=change-me-in-production
 NODE_ENV=development
-REACT_APP_API_URL=http://localhost:5000
 ```
 
 ### `server/.env.example`
@@ -178,8 +197,10 @@ POSTGRES_PASSWORD=change-me-strong-postgres-password
 JWT_SECRET=change-me-long-random-jwt-secret
 JWT_EXPIRE=7d
 NODE_ENV=production
-REACT_APP_API_URL=http://YOUR_SERVER_IP_OR_DOMAIN
 ```
+
+Frontend обращается к относительному `/api/`, поэтому его image не зависит от
+публичного адреса окружения.
 
 ## Быстрый запуск через Docker
 
@@ -188,6 +209,9 @@ REACT_APP_API_URL=http://YOUR_SERVER_IP_OR_DOMAIN
 ```bash
 docker compose up -d --build
 ```
+
+Compose сначала запускает одноразовый `release` и создаёт backend только после
+его успешного завершения. `docker compose ps -a` показывает результат release.
 
 2. Создать демо-пользователей и демо-тесты:
 
@@ -278,10 +302,16 @@ docker compose config
 
 ```bash
 cd server
-npm install
+npm ci
 ```
 
-2. Запустить backend:
+2. Выполнить обязательную release-фазу:
+
+```bash
+npm run release
+```
+
+3. Запустить backend:
 
 ```bash
 npm run dev
@@ -293,20 +323,20 @@ npm run dev
 npm start
 ```
 
-3. В отдельном терминале установить зависимости frontend:
+4. В отдельном терминале установить зависимости frontend:
 
 ```bash
 cd client
-npm install
+npm ci
 ```
 
-4. Запустить frontend:
+5. Запустить frontend:
 
 ```bash
 npm start
 ```
 
-5. При необходимости заполнить базу демо-данными:
+6. При необходимости заполнить базу демо-данными:
 
 ```bash
 cd server
@@ -597,6 +627,7 @@ npm run coverage
 ```bash
 npm test
 npm run coverage:client
+npm run fuzz:ci
 cd client
 npm run build
 cd ..
@@ -608,39 +639,43 @@ curl http://localhost/api/health
 Ожидаемый результат:
 
 - все Jest suites проходят;
+- fuzzing выполняет 20 000 мутаций без crash/timeout;
 - frontend production build компилируется;
 - Docker Compose config валиден;
+- одноразовый `release` завершается с кодом `0`;
 - контейнеры `postgres`, `backend`, `frontend`, `nginx` находятся в состоянии `Up`;
 - `/api/health` возвращает `status: OK`.
 
-## Fuzzing API
+## Coverage-guided fuzzing
 
-В проекте есть отдельный fuzzing-набор для API.
+Для backend настроен Jazzer.js 4 — in-process coverage-guided fuzzer на базе
+libFuzzer. Fuzz target инструментирует реальную логику оценивания в
+`server/src/utils/grading.js`; движок мутирует входы с учётом достигнутого
+покрытия и сохраняет полезные входы в `server/tests/fuzzing/corpus/grading/`.
 
 ```bash
-cd server/tests/fuzzing
-npm install
-npm test
+npm ci --prefix server/tests/fuzzing
+npm run fuzz          # локальный поиск в течение 60 секунд
+npm run fuzz:ci       # воспроизводимые 20 000 итераций, как в CI
+npm run fuzz:coverage # покрытие сохранённого corpus
 ```
 
-Fuzzing проверяет:
+При падении минимизированный вход сохраняется в
+`server/tests/fuzzing/artifacts/`. Fuzz target проверяет границы оценки,
+согласованность неправильных ответов, типы нормализованных значений,
+сортировку, отсутствие дубликатов и идемпотентность нормализации. Подробное
+описание corpus, инвариантов и воспроизведения ошибок находится в
+`server/tests/fuzzing/README.md`.
 
-- SQL injection;
-- XSS payloads;
-- authentication bypass;
-- RBAC;
-- path traversal;
-- command injection;
-- большие payloads;
-- null byte payloads.
+Прежний перебор фиксированных SQLi/XSS/RBAC payload является набором негативных
+security API checks, а не фаззингом. Он сохранён отдельной командой (требует
+запущенный backend):
 
-JSON-отчёты сохраняются в:
-
-```text
-server/tests/fuzzing/results/
+```bash
+npm run security:api
 ```
 
-## CI/CD
+## CI и публикация образов
 
 Workflow находится в:
 
@@ -648,13 +683,17 @@ Workflow находится в:
 .github/workflows/ci-cd.yml
 ```
 
+Несмотря на имя файла, workflow не выполняет deployment на VPS. Его граница —
+проверки и публикация images в Docker Hub; release на сервер выполняется
+вручную по [deployment-инструкции](docs/DEPLOYMENT.md).
+
 Запускается при:
 
 - `push` в `main` или `master`;
 - `pull_request` в `main` или `master`;
 - ручном запуске через `workflow_dispatch`.
 
-Pipeline состоит из трёх job'ов:
+Pipeline состоит из четырёх job'ов:
 
 1. `tests`
    - checkout репозитория;
@@ -663,8 +702,16 @@ Pipeline состоит из трёх job'ов:
    - `npm ci --prefix server`;
    - `npm test`.
 
-2. `containers`
+2. `fuzzing`
+   - setup Node.js 22;
+   - `npm ci --prefix server/tests/fuzzing`;
+   - coverage-guided fuzzing: 20 000 мутаций с фиксированным seed;
+   - публикация минимизированного crash input как CI artifact при ошибке.
+
+3. `containers`
+   - запускается только после успешных `tests` и `fuzzing`;
    - `docker compose up -d --build`;
+   - проверка успешного одноразового `release`-процесса;
    - ожидание backend healthcheck;
    - ожидание frontend;
    - ожидание nginx proxy;
@@ -672,30 +719,18 @@ Pipeline состоит из трёх job'ов:
    - вывод логов при ошибке;
    - `docker compose down -v`.
 
-3. `dockerhub`
+4. `dockerhub`
    - выполняется не для pull request;
    - логинится в Docker Hub;
    - собирает и публикует backend/frontend образы.
 
-### Secrets и variables для Docker Hub
+### Secrets для Docker Hub
 
 В настройках GitHub repository нужно добавить secrets:
 
 ```text
 DOCKERHUB_USERNAME
 DOCKERHUB_TOKEN
-```
-
-Опционально можно добавить repository variable:
-
-```text
-REACT_APP_API_URL
-```
-
-Если `REACT_APP_API_URL` не задан, frontend image в CI собирается со значением:
-
-```text
-http://localhost:5000
 ```
 
 Публикуемые образы:
@@ -709,64 +744,39 @@ DOCKERHUB_USERNAME/test-constructor-frontend:<commit-sha>
 
 ## Production / Ubuntu Server
 
-Для VPS используется:
+Поддерживаемый текущей конфигурацией сценарий — ручная сборка на VPS из
+конкретной Git-ревизии:
 
 ```text
 docker-compose.ubuntu.yml
 .env.ubuntu
 ```
 
-Особенности production compose:
-
-- PostgreSQL не публикуется наружу;
-- backend не публикуется наружу напрямую;
-- наружу открыт только nginx на `80`;
-- сервисы имеют `restart: unless-stopped`;
-- `NODE_ENV=production`.
-
-Запуск:
+Краткий первичный запуск:
 
 ```bash
 cp .env.ubuntu.example .env.ubuntu
+# заменить шаблонные пароли и JWT secret
+docker compose --env-file .env.ubuntu -f docker-compose.ubuntu.yml config -q
+docker compose --env-file .env.ubuntu -f docker-compose.ubuntu.yml build --pull
+docker compose --env-file .env.ubuntu -f docker-compose.ubuntu.yml up -d postgres
+docker compose --env-file .env.ubuntu -f docker-compose.ubuntu.yml run --rm --no-deps release
+docker compose --env-file .env.ubuntu -f docker-compose.ubuntu.yml up -d --no-deps backend frontend nginx
 ```
 
-Отредактировать `.env.ubuntu`:
-
-```env
-POSTGRES_PASSWORD=strong-password
-JWT_SECRET=long-random-secret
-REACT_APP_API_URL=http://your-domain-or-ip
-```
-
-Собрать и поднять:
-
-```bash
-docker compose --env-file .env.ubuntu -f docker-compose.ubuntu.yml up -d --build
-```
-
-Заполнить демо-данные:
-
-```bash
-docker compose --env-file .env.ubuntu -f docker-compose.ubuntu.yml exec -T backend npm run seed
-```
-
-Проверить состояние:
+Проверка:
 
 ```bash
 docker compose --env-file .env.ubuntu -f docker-compose.ubuntu.yml ps
+curl --fail http://your-domain-or-ip/api/health
 ```
 
-Посмотреть логи backend:
-
-```bash
-docker compose --env-file .env.ubuntu -f docker-compose.ubuntu.yml logs backend --tail=120
-```
-
-Остановить:
-
-```bash
-docker compose --env-file .env.ubuntu -f docker-compose.ubuntu.yml down
-```
+Production Compose не использует опубликованные Docker Hub images и GitHub
+Actions не выполняет автоматический deploy на VPS. Seeder создаёт учётные
+записи с известными демо-паролями и не должен считаться обязательным production
+шагом. Полная инструкция с readiness-проверками, backup, обновлением, rollback,
+ограничениями TLS и bootstrap администратора находится в
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## База данных
 
@@ -780,7 +790,9 @@ docker compose --env-file .env.ubuntu -f docker-compose.ubuntu.yml down
 | `test_results` | Результаты прохождений, score, ответы, время прохождения. |
 | `system_settings` | Настройки платформы. |
 
-При старте backend выполняет синхронизацию моделей. Для поля `durationSeconds` в результатах добавлена безопасная проверка/добавление колонки, чтобы существующая база не ломалась при обновлениях схемы.
+Синхронизация моделей, проверка `durationSeconds` и начальные системные настройки
+выполняются только командой `npm run release`. Обычный старт backend не изменяет
+схему БД.
 
 ## Безопасность и валидация
 

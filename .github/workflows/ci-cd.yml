@@ -38,10 +38,41 @@ jobs:
       - name: Run frontend and backend tests
         run: npm test
 
+  fuzzing:
+    name: Run coverage-guided fuzzing
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/tests/fuzzing/package-lock.json
+
+      - name: Install fuzzing dependencies
+        run: npm ci --prefix server/tests/fuzzing
+
+      - name: Run coverage-guided fuzzing
+        run: npm run fuzz:ci
+
+      - name: Upload fuzzing crash artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzzing-crash-artifacts
+          path: server/tests/fuzzing/artifacts/
+          if-no-files-found: ignore
+
   containers:
     name: Build and run containers
     runs-on: ubuntu-latest
-    needs: tests
+    needs:
+      - tests
+      - fuzzing
 
     steps:
       - name: Checkout repository
@@ -49,6 +80,9 @@ jobs:
 
       - name: Build and start Docker Compose stack
         run: docker compose --env-file .env.example up -d --build
+
+      - name: Verify release process
+        run: docker compose --env-file .env.example wait release
 
       - name: Wait for backend healthcheck
         run: |
@@ -106,8 +140,6 @@ jobs:
         with:
           context: ./client
           push: true
-          build-args: |
-            REACT_APP_API_URL=${{ vars.REACT_APP_API_URL || 'http://localhost:5000' }}
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/test-constructor-frontend:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/test-constructor-frontend:${{ github.sha }}

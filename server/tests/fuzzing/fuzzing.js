@@ -152,7 +152,7 @@ async function ensureApiIsAvailable() {
     console.error(`ERROR API is unavailable at ${BASE_URL}: ${error.message}`);
   }
 
-  console.error('\nStart the backend before fuzzing, for example:');
+  console.error('\nStart the backend before API security checks, for example:');
   console.error('  docker compose --env-file .env.example up -d --build backend');
   console.error('  docker compose --env-file .env.example exec -T backend npm run seed\n');
   process.exitCode = 1;
@@ -282,7 +282,7 @@ async function testRBAC() {
       method: 'POST',
       payload: {
         title: `RBAC ${demoUser.role} ${Date.now()}`,
-        description: 'Fuzzing test',
+        description: 'Security API check',
         questions: []
       },
       headers: { Authorization: `Bearer ${token}` },
@@ -303,7 +303,7 @@ async function testRBAC() {
 }
 
 async function runAllTests() {
-  console.log('Starting fuzzing tests...\n');
+  console.log('Starting negative API security checks...\n');
   console.log(`Target: ${BASE_URL}\n`);
 
   const isApiAvailable = await ensureApiIsAvailable();
@@ -318,7 +318,7 @@ async function runAllTests() {
   await testBufferOverflow();
   await testRBAC();
 
-  const reportFile = `${RESULTS_DIR}/fuzzing-report-${Date.now()}.json`;
+  const reportFile = `${RESULTS_DIR}/security-api-report-${Date.now()}.json`;
   fs.writeFileSync(reportFile, JSON.stringify(results, null, 2));
 
   const failedChecks = results.tests.filter((test) => !test.passed);

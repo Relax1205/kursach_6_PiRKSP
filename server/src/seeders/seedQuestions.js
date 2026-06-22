@@ -258,8 +258,7 @@ async function upsertDemoTest(demoTest, authorId) {
 
 async function seed() {
   try {
-    await sequelize.sync({ alter: process.env.NODE_ENV === 'development' });
-    console.log('Database synchronized');
+    await sequelize.authenticate();
 
     const demoUsers = [
       {
@@ -310,10 +309,11 @@ async function seed() {
     console.log('Seed completed');
     console.log(`Total tests: ${demoTests.length}`);
     console.log(`Total questions: ${totalQuestions}`);
-    process.exit(0);
   } catch (error) {
     console.error('Seed failed:', error);
-    process.exit(1);
+    process.exitCode = 1;
+  } finally {
+    await sequelize.close();
   }
 }
 
